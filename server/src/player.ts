@@ -72,14 +72,19 @@ export default class Player {
       } else if (newState.status == AudioPlayerStatus.Idle) { // && this.#connection.state.status != VoiceConnectionStatus.Destroyed
         const track = this.#queue.tracks[this.#queue.playhead];
         if (track) {
+          // if we're here it means we were playing something and are now idle
           const elapsed = (Date.now() / 1000) - track.status.start!;
           const duration = track.goose.track.duration;
           const difference = Math.abs(duration - elapsed);
           const percentage = (100 * ((elapsed < duration) ? (elapsed / duration) : (duration / elapsed)));
           if (difference > 10 || percentage < 95) {
+            // failed play logic - elapsed time is too far off duration
             logDebug(`track: ${track.goose.track.name}—goose: ${track.goose.id} duration discrepancy. start ${track.status.start}, elapsed ${elapsed}, duration ${duration}, difference ${difference}, percentage ${percentage}`.replace(/(?<=\d*\.\d{3})\d+/g, ''));
             db.logPlay(track.goose.id, false);
-          } else { db.logPlay(track.goose.id); }
+          } else {
+            // successful play logic
+            db.logPlay(track.goose.id);
+          }
           delete this.#queue.tracks[this.#queue.playhead].status.start;
         }
         this.next();

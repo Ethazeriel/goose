@@ -109,7 +109,6 @@ export function TrackSmall(props: { id:number, track:Track, playerClick:(action:
   // }, [cursorText, label]);
 
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   // needs a better name. is intended to be called by event; exists to connect cancelled drops to what was last
   // dragged over, and as part of insertion marks persisting until server response, where the id useEffect and
   // clear handle all-but dropping "above" something because it's id never changes. may have once had a purpose
@@ -212,7 +211,6 @@ export function TrackSmall(props: { id:number, track:Track, playerClick:(action:
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const dragLeave = (event:React.DragEvent<HTMLElement>) => {
     event.stopPropagation();
     setAllowed(null);
@@ -349,7 +347,6 @@ const Wrapper = styled.div<{ $name?:string; }>`
     (props.$name === 'PENDING') ? '#233723' : (props.$name === 'FAILED') ? '#3f2727' : '#303233') };}
 `;
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const InsertionMarker = styled.span<{ visible: boolean, invalid: boolean }>`
   display: block;
   height: 2px;

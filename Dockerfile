@@ -11,7 +11,7 @@ COPY client/src ./src
 COPY client/index.html ./
 COPY @types ./src/@types
 COPY client/tsconfig.json ./tsconfig.json
-COPY client/.eslintrc.json ./.eslintrc.json
+COPY client/eslint.config.mjs ./.eslint.config.mjs
 RUN npm run build
 
 # separately build server code so we don't have to package typescript/etc in the final container

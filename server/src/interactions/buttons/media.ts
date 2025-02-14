@@ -1,6 +1,6 @@
 import Player from '../../player.js';
 import { logDebug } from '../../logger.js';
-import { InteractionDeferUpdateOptions, ButtonInteraction } from 'discord.js';
+import { InteractionDeferUpdateOptions, ButtonInteraction, InteractionEditReplyOptions } from 'discord.js';
 
 export const name = 'media';
 
@@ -13,7 +13,7 @@ export async function execute(interaction:ButtonInteraction, which:string):Promi
       switch (which) {
         case 'refresh': {
           const mediaEmbed = await player.mediaEmbed(false);
-          interaction.message = await interaction.editReply(mediaEmbed);
+          interaction.message = await interaction.editReply(mediaEmbed as InteractionEditReplyOptions);
           player.register(interaction, 'media', mediaEmbed);
           break;
         }
@@ -49,7 +49,7 @@ export async function execute(interaction:ButtonInteraction, which:string):Promi
 
         case 'showqueue': {
           const queueEmbed = await player.queueEmbed(undefined, undefined, true);
-          interaction.message = await interaction.editReply(queueEmbed);
+          interaction.message = await interaction.editReply(queueEmbed as InteractionEditReplyOptions);
           player.register(interaction, 'queue', queueEmbed);
           break;
         }

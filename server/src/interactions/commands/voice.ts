@@ -3,7 +3,7 @@ import Player from '../../player.js';
 import { log } from '../../logger.js';
 import fs from 'fs';
 import { fileURLToPath, URL } from 'url';
-import { ChatInputCommandInteraction, GuildMemberRoleManager, Message, InteractionReplyOptions } from 'discord.js';
+import { ChatInputCommandInteraction, GuildMemberRoleManager, Message, InteractionEditReplyOptions } from 'discord.js';
 const { discord }:GooseConfig = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../../../../config.json', import.meta.url).toString()), 'utf-8'));
 const roles = discord.roles;
 
@@ -41,7 +41,7 @@ export async function execute(interaction:MusicInteraction):Promise<void> {
           case 'nowplaying': {
             if (player.getQueue().length) {
               const embed = await player.mediaEmbed();
-              interaction.message = await interaction.editReply(embed) as Message<boolean>;
+              interaction.message = await interaction.editReply(embed as InteractionEditReplyOptions) as Message<boolean>;
               await player.register(interaction, 'media', embed);
             } else { await player.decommission(interaction, 'media', await player.mediaEmbed(false), 'Queue is empty.'); }
             break;
@@ -49,7 +49,7 @@ export async function execute(interaction:MusicInteraction):Promise<void> {
 
           default: {
             log('error', ['OH NO SOMETHING\'S FUCKED']);
-            await interaction.editReply({ content: 'Something broke. Please try again', ephemeral: true } as InteractionReplyOptions);
+            await interaction.editReply({ content: 'Something broke. Please try again', ephemeral: true } as InteractionEditReplyOptions);
           }
         }
       } else { interaction.editReply({ content: message }); }

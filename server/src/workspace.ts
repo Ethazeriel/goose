@@ -80,7 +80,7 @@ export default class Workspace {
       ],
     }];
     if (pages === 0) {
-      return fresh ? { embeds: [{ color: 0xfc1303, title: 'Nothing to show!', thumbnail: { url: 'attachment://thumb.jpg' } }], components: buttonEmbed, files: [thumb!], ephemeral: true } : { embeds: [{ color: 0xfc1303, title: 'Nothing to show!', thumbnail: { url: 'attachment://thumb.jpg' } }], components: buttonEmbed, ephemeral: true };
+      return fresh ? { embeds: [{ color: 0xfc1303, title: 'Nothing to show!', thumbnail: { url: 'attachment://thumb.jpg' } }], components: buttonEmbed, files: [thumb!] } : { embeds: [{ color: 0xfc1303, title: 'Nothing to show!', thumbnail: { url: 'attachment://thumb.jpg' } }], components: buttonEmbed };
     }
     if (page > pages) { page = pages; }
     const queuePart = this.list.slice((page - 1) * 10, page * 10);

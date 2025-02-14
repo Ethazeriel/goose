@@ -1,5 +1,5 @@
 /* eslint-disable no-fallthrough */
-import { AttachmentBuilder, ChatInputCommandInteraction, InteractionReplyOptions } from 'discord.js';
+import { AttachmentBuilder, ChatInputCommandInteraction, InteractionEditReplyOptions } from 'discord.js';
 import { log } from './logger.js';
 // import Canvas from 'canvas';
 import { Jimp } from 'jimp';
@@ -129,7 +129,7 @@ export function numbersToTrackIndexes(input:string):Array<number> {
 //               EMBEDS
 // =================================
 
-export async function generateTrackEmbed(track:Track, messagetitle:string):Promise<InteractionReplyOptions> {
+export async function generateTrackEmbed(track:Track, messagetitle:string):Promise<InteractionEditReplyOptions> {
   const albumart = new AttachmentBuilder((track.goose.track.art), { name:'art.jpg' });
   const npEmbed = {
     color: 0x580087,
@@ -144,7 +144,7 @@ export async function generateTrackEmbed(track:Track, messagetitle:string):Promi
       url: 'attachment://art.jpg',
     },
   };
-  return { embeds: [npEmbed], files: [albumart] } as InteractionReplyOptions;
+  return { embeds: [npEmbed], files: [albumart] } as InteractionEditReplyOptions;
 }
 
 export async function mbArtistLookup(artist:string):Promise<string | undefined> {

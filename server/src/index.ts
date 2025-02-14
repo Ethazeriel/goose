@@ -12,7 +12,7 @@ import Translator from './translate.js';
 import validator from 'validator';
 import type { ContextMenuCommandBuilder, SlashCommandBuilder } from '@discordjs/builders';
 import type { DiscordGatewayAdapterCreator } from '@discordjs/voice';
-import type { ButtonInteraction, ChatInputCommandInteraction, GuildMember, InteractionReplyOptions, MessageContextMenuCommandInteraction, StringSelectMenuInteraction } from 'discord.js';
+import type { ButtonInteraction, ChatInputCommandInteraction, GuildMember, InteractionEditReplyOptions, MessageContextMenuCommandInteraction, StringSelectMenuInteraction } from 'discord.js';
 
 // Create a new client instance
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildPresences, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
@@ -124,7 +124,7 @@ client.on('interactionCreate', async (interaction):Promise<void> => {
       await selectMenu.execute(interaction);
     } catch (error:any) {
       log('error', [error.stack]);
-      await interaction.editReply({ content: 'There was an error while processing this select menu!', components: [], ephemeral: true } as InteractionReplyOptions);
+      await interaction.editReply({ content: 'There was an error while processing this select menu!', components: [], ephemeral: true } as InteractionEditReplyOptions);
       return;
     }
   } else if (interaction.isButton()) {
@@ -136,7 +136,7 @@ client.on('interactionCreate', async (interaction):Promise<void> => {
       await buttonPress.execute(interaction, match![2]);
     } catch (error:any) {
       log('error', [error.stack]);
-      await interaction.editReply({ content: 'There was an error while processing this button press!', components: [], ephemeral: true } as InteractionReplyOptions);
+      await interaction.editReply({ content: 'There was an error while processing this button press!', components: [], ephemeral: true } as InteractionEditReplyOptions);
       return;
     }
   } else if (interaction.isMessageContextMenuCommand()) {

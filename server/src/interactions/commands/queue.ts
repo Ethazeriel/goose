@@ -8,7 +8,7 @@ import { seekTime as seekRegex } from '../../regexes.js';
 import validator from 'validator';
 import fs from 'fs';
 import { fileURLToPath, URL } from 'url';
-import { ChatInputCommandInteraction, GuildMemberRoleManager, Message } from 'discord.js';
+import { ChatInputCommandInteraction, GuildMemberRoleManager, InteractionEditReplyOptions, Message } from 'discord.js';
 const { discord }:GooseConfig = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../../../../config.json', import.meta.url).toString()), 'utf-8'));
 const roles = discord.roles;
 
@@ -80,7 +80,7 @@ export async function execute(interaction:ChatInputCommandInteraction & { messag
           if (player.getQueue().length) {
             const page = Math.abs(Number(interaction.options.getInteger('page'))) || undefined;
             const queueEmbed = await player.queueEmbed(undefined, page);
-            interaction.message = await interaction.editReply(queueEmbed) as Message;
+            interaction.message = await interaction.editReply(queueEmbed as InteractionEditReplyOptions) as Message;
             player.register(interaction, 'queue', queueEmbed);
           } else { player.decommission(interaction, 'queue', await player.queueEmbed(undefined, undefined, false), 'Queue is empty.'); }
           break;

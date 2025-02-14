@@ -1,5 +1,6 @@
 {
   "editor.tabSize": 2,
   "typescript.enablePromptUseWorkspaceTsdk": true,
-  "typescript.tsserver.experimental.enableProjectDiagnostics": true
+  "typescript.tsserver.experimental.enableProjectDiagnostics": true,
+  "eslint.useFlatConfig": true
 }

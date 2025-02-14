@@ -7,7 +7,7 @@
     "start": "vite",
     "wdyr": "VITE_ENABLE_WHY_DID_YOU_RENDER=true vite",
     "build": "vite build",
-    "lint": "eslint src --ext js,ts,tsx --report-unused-disable-directives"
+    "lint": "eslint src --report-unused-disable-directives"
   },
   "eslintConfig": {
     "extends": [
@@ -21,8 +21,8 @@
     "@types/styled-components": "^5.1.25",
     "@vitejs/plugin-react": "^4.2.1",
     "browserslist-to-esbuild": "^2.1.1",
-    "eslint-plugin-react": "^7.29.4",
-    "eslint-plugin-react-hooks": "^5.0.0-next-f0efa1164-20220901",
+    "eslint-plugin-react": "^7.37.4",
+    "eslint-plugin-react-hooks": "^5.1.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "styled-components": "^5.3.5",
@@ -33,9 +33,13 @@
     "web-vitals": "^2.1.4"
   },
   "devDependencies": {
+    "@eslint/compat": "^1.2.6",
+    "@eslint/eslintrc": "^3.2.0",
+    "@eslint/js": "^9.20.0",
     "@types/node": "^20.11.0",
-    "@typescript-eslint/eslint-plugin": "^5.22.0",
-    "@typescript-eslint/parser": "^5.22.0",
-    "@welldone-software/why-did-you-render": "^8.0.3"
+    "@typescript-eslint/eslint-plugin": "^8.24.0",
+    "@typescript-eslint/parser": "^8.24.0",
+    "@welldone-software/why-did-you-render": "^8.0.3",
+    "globals": "^15.15.0"
   }
 }

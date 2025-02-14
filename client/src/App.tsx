@@ -2,9 +2,7 @@ import './App.css';
 import * as React from 'react';
 import { TrackSmall, DraggedTrack } from './TrackSmall';
 import { StatusBar } from './StatusBar';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import styled, { css } from 'styled-components';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import DisplaySelect from './DisplaySelect';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { DropCheck } from './DropCheck';
@@ -62,6 +60,7 @@ export default class App extends React.Component<Record<string, never>, AppState
     }).then((response) => response.json()).then((json) => {
       // console.log(`fetch response ${Date.now()}`);
       // spite
+      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       json && Object.keys(json).map((key:string) => {
         switch (key) {
           case 'error': {

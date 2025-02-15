@@ -1,0 +1,21 @@
+{
+  "extends": "../../packages/ts-config/tsconfig.json",
+  "compilerOptions": {
+    "rootDir":"src",
+    "outDir": "build",
+    "noEmit": true,
+    "sourceMap": true,
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "types": ["node", "vite/client"],
+    "paths": {
+      "@ethgoose/*": ["./packages/*"]
+    },
+    "typeRoots": ["./src/@types", "../../node_modules/@types", "../../node_modules"],
+  },
+  "exclude": ["build", "eslint.config.mjs", "vite.config.ts"],
+  "references": [
+    {
+      "path": "../../packages/types"
+    }
+  ]
+}

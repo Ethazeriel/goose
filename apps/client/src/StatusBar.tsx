@@ -50,6 +50,7 @@ const AuthLink = styled.a`
 text-decoration: none;
 color: #FFFFFF;
 text-align: center;
+pointer-events: auto;
 &:hover { color: #5865f2; }
 `;
 

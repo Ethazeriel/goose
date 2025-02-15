@@ -4,14 +4,12 @@ node_modules
 
 #secrets
 .env
-config.json
-/config
+#dedicated gitignore in place for config files
 
 #artefacts
 build
 *.tsbuildinfo
 compose/*
-apps/server/logs/*
 
 #misc
 *test*

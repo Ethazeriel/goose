@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useReducer, useState, useMemo } from 'react';
 import styled from 'styled-components';
-import { timeDisplay } from './utils';
+import { timeDisplay } from '@ethgoose/utils';
 
 import Shuffle from './media/placeholder/shuffle.svg?react';
 import Prev from './media/placeholder/prev.svg?react';

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import styled from 'styled-components';
-import { timeDisplay } from './utils';
+import { timeDisplay } from '@ethgoose/utils';
 
 
 export function BasicTrack(props:{track:Track, id:number}) {

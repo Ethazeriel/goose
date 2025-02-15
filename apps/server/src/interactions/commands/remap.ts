@@ -2,7 +2,7 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import { ChatInputCommandInteraction, GuildMemberRoleManager } from 'discord.js';
 import { sanitize, youtubePattern } from '@ethgoose/utils/regex';
 import * as db from '../../database.js';
-import * as utils from '../../utils.js';
+import * as utils from '@ethgoose/utils';
 import Player from '../../player.js';
 import youtube from '../../workers/acquire/youtube.js';
 import fs from 'fs';

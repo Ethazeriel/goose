@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import Player from '../../player.js';
-import { chooseAudioSource } from '../../utils.js';
+import { chooseAudioSource } from '@ethgoose/utils';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { log, logDebug } from '../../logger.js';
 import * as db from '../../database.js';

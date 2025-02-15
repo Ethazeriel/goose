@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import Player from '../../player.js';
-import * as utils from '../../utils.js';
+import * as utils from '@ethgoose/utils';
 import { log } from '../../logger.js';
 import * as database from '../../database.js';
 import { sanitize, sanitizePlaylists } from '@ethgoose/utils/regex';

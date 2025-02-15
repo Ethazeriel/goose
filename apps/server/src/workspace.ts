@@ -1,6 +1,6 @@
 import Player from './player.js';
 import { CommandInteraction, AttachmentBuilder, InteractionReplyOptions } from 'discord.js';
-import * as utils from './utils.js';
+import * as utils from '@ethgoose/utils';
 import * as db from './database.js';
 import { logDebug } from './logger.js';
 

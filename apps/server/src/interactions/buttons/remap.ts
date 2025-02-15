@@ -1,5 +1,5 @@
 import * as db from '../../database.js';
-import * as utils from '../../utils.js';
+import * as utils from '@ethgoose/utils';
 import { ButtonInteraction, InteractionUpdateOptions, InteractionDeferUpdateOptions } from 'discord.js';
 import youtube from '../../workers/acquire/youtube.js';
 

@@ -5,8 +5,8 @@ import playButton from './media/placeholder/dark_play.png';
 import removeButton from './media/placeholder/dark_remove.png';
 import dragHandle from './media/placeholder/dark_drag.png';
 import dragImage from './media/placeholder/dragImage.png';
-
-import { timeDisplay, allowExternal, allowedExternalTypes } from './utils';
+import { timeDisplay } from '@ethgoose/utils';
+import { allowExternal, allowedExternalTypes } from './utils';
 
 import './App.css';
 

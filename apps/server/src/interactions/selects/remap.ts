@@ -1,6 +1,6 @@
 import { StringSelectMenuInteraction } from 'discord.js';
 import * as db from '../../database.js';
-import * as utils from '../../utils.js';
+import * as utils from '@ethgoose/utils';
 
 export const name = 'remap';
 

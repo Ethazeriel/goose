@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import type { ChatInputCommandInteraction, InteractionUpdateOptions, InteractionEditReplyOptions } from 'discord.js';
-import * as utils from '../../utils.js';
+import * as utils from '@ethgoose/utils';
 
 
 export const data = new SlashCommandBuilder()

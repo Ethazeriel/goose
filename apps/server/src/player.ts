@@ -8,7 +8,8 @@ import { log, logDebug } from './logger.js';
 import { fileURLToPath, URL } from 'url';
 const { youtube, functions }:GooseConfig = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../config/config.json', import.meta.url).toString()), 'utf-8'));
 const useragent = youtube.useragent;
-import * as utils from './utils.js';
+import * as utils from '@ethgoose/utils';
+import { mbArtistLookup } from './utils.js';
 import { embedPage } from '@ethgoose/utils/regex';
 // import * as seekable from 'play-dl';
 import subsonic from './workers/acquire/subsonic.js';
@@ -718,7 +719,7 @@ export default class Player {
     // const elapsedTime = (!track || !track.status?.start) ? 0 : (this.getPause()) ? (track.status.pause! - track.status.start) : ((Date.now() / 1000) - track.status.start);
     const elapsedTime:number = (this.getPause() ? (track?.status?.pause! - track?.status?.start!) : ((Date.now() / 1000) - track?.status?.start!)) || 0;
     if (track && !Player.placeholder(track) && ((track.goose.artist.name !== 'Unknown Artist') && !track.goose.artist?.official)) {
-      const result = await utils.mbArtistLookup(track.goose.artist.name);
+      const result = await mbArtistLookup(track.goose.artist.name);
       if (result) {db.updateOfficial(track.goose.id, result);}
       track.goose.artist.official = result ? result : '';
     }
@@ -802,7 +803,7 @@ export default class Player {
       head: track?.bar?.head || '#',
     };
     if (track && ((track.goose.artist.name !== 'Unknown Artist') && !track.goose.artist?.official && !Player.placeholder(track))) {
-      const result = await utils.mbArtistLookup(track.goose.artist.name);
+      const result = await mbArtistLookup(track.goose.artist.name);
       if (result) {db.updateOfficial(track.goose.id, result);}
       track.goose.artist.official = result ? result : '';
     }

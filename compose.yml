@@ -27,8 +27,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./compose/goose/logs:/goose/logs
-      - ./config.json:/config.json
-      - ./cookies.txt:/cookies.txt
+      - ./config:/goose/config
       - client-assets:/client-assets
       - nginx-config:/nginx
     environment:

@@ -14,7 +14,7 @@
     },
     "typeRoots": ["./src/@types", "../../node_modules/@types", "../../node_modules"],
   },
-  "exclude": ["build", "eslint.config.mjs", "vite.config.ts"],
+  "exclude": ["build", "eslint.config.mjs", "vite.config.ts", "node_modules"],
   "references": [
     {
       "path": "../../packages/types"

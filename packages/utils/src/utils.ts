@@ -1,3 +1,4 @@
+/* eslint-disable no-fallthrough */
 import crypto from 'crypto';
 
 export function progressBar(size:number, duration:number, playhead:number, { start, end, barbefore, barafter, head }:ProgressBarOptions = {}):string {

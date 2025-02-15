@@ -1,6 +1,6 @@
 import * as db from './database.js';
 import { log, logDebug } from './logger.js';
-import { sanitize } from './regexes.js';
+import { sanitize } from '@ethgoose/utils/regex';
 import subsonic from './workers/acquire/subsonic.js';
 
 

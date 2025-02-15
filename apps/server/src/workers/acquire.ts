@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import * as db from '../database.js';
 import { logDebug, log } from '../logger.js';
-import { youtubePattern, spotifyPattern, sanitize, youtubePlaylistPattern, napsterPattern } from '../regexes.js';
+import { youtubePattern, spotifyPattern, sanitize, youtubePlaylistPattern, napsterPattern } from '@ethgoose/utils/regex';
 import { parentPort } from 'worker_threads';
 import youtube from './acquire/youtube.js';
 import spotify from './acquire/spotify.js';

@@ -1,0 +1,19 @@
+{
+  "name": "@ethgoose/utils",
+  "version": "0.0.1",
+  "author": "Ethazeriel, Whuppee",
+  "license": "CC BY-NC-SA 4.0",
+  "description": "shared goose utilities",
+  "type":"module",
+  "scripts": {
+    "build": "tsc --build --verbose",
+    "clean": "tsc --build --clean",
+    "lint": "eslint src --report-unused-disable-directives"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  },
+  "exports": {
+    "./regex": "./build/regexes.js"
+  }
+}

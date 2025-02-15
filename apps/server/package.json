@@ -17,6 +17,8 @@
   "license": "CC BY-NC-SA 4.0",
   "dependencies": {
     "@discordjs/voice": "^0.18.0",
+    "@ethgoose/acquire": "^1.0.0",
+    "@ethgoose/utils": "^0.0.1",
     "@google-cloud/translate": "^8.5.0",
     "axios": "^1.7.9",
     "chalk": "^5.0.0",

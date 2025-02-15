@@ -4,7 +4,7 @@ import { chooseAudioSource } from '../../utils.js';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { log, logDebug } from '../../logger.js';
 import * as db from '../../database.js';
-import { seekTime as seekRegex } from '../../regexes.js';
+import { seekTime as seekRegex } from '@ethgoose/utils/regex';
 import validator from 'validator';
 import fs from 'fs';
 import { fileURLToPath, URL } from 'url';

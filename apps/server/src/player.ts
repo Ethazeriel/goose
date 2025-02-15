@@ -9,7 +9,7 @@ import { fileURLToPath, URL } from 'url';
 const { youtube, functions }:GooseConfig = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../config/config.json', import.meta.url).toString()), 'utf-8'));
 const useragent = youtube.useragent;
 import * as utils from './utils.js';
-import { embedPage } from './regexes.js';
+import { embedPage } from '@ethgoose/utils/regex';
 // import * as seekable from 'play-dl';
 import subsonic from './workers/acquire/subsonic.js';
 

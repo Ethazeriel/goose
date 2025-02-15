@@ -25,3 +25,7 @@ export const napsterPattern = /(?:play\.napster\.com)(?:\/album\/|\/playlist\/)(
 // [1] is the ID for albums and playlists
 // [2] is the link type - track, album, playlist
 // [3] is the ID for tracks
+
+// web-frontend
+export const dragPattern = /(text\/plain)/i;
+export const subsonicPattern = /(?:\/app\/#\/)((?:track|playlist|album){1})(?:\/)([a-f0-9-]{32,36})/;

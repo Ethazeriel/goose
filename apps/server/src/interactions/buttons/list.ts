@@ -1,4 +1,4 @@
-import { embedPage } from '../../regexes.js';
+import { embedPage } from '@ethgoose/utils/regex';
 import Workspace from '../../workspace.js';
 import { ButtonInteraction, GuildMember, InteractionDeferUpdateOptions, InteractionEditReplyOptions, InteractionReplyOptions } from 'discord.js';
 

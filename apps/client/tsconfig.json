@@ -5,6 +5,8 @@
     "outDir": "build",
     "noEmit": true,
     "sourceMap": true,
+    "moduleResolution":"bundler",
+    "module":"ESNext",
     "lib": ["dom", "dom.iterable", "esnext"],
     "types": ["node", "vite/client"],
     "paths": {
@@ -16,6 +18,9 @@
   "references": [
     {
       "path": "../../packages/types"
+    },
+    {
+      "path": "../../packages/utils"
     }
   ]
 }

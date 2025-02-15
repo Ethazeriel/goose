@@ -2,6 +2,7 @@
   "name": "goose-meta",
   "private": true,
   "version": "0.0.1",
+  "type":"module",
   "scripts": {
     "build": "./node_modules/typescript/bin/tsc --build tsconfig.build.json"
   },

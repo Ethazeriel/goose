@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import fs from 'fs';
 import chalk from 'chalk';
-import { sanitize } from './regexes.js';
+import { sanitize } from '@ethgoose/utils/regex';
 import { fileURLToPath, URL } from 'url';
 const debugMode:GooseConfig['debug'] = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../config/config.json', import.meta.url).toString()), 'utf-8')).debug;
 import { isMainThread } from 'worker_threads';

@@ -1,5 +1,5 @@
 import Joi from 'joi';
-import { napsterPattern, spotifyPattern, youtubePattern, youtubePlaylistPattern, sanitize } from '../../regexes.js';
+import { napsterPattern, spotifyPattern, youtubePattern, youtubePlaylistPattern, sanitize } from '@ethgoose/utils/regex';
 import subsonic from '../acquire/subsonic.js';
 
 // if we match one of these, it's something we know about in acquire

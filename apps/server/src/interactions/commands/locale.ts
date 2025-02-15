@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import Translator from '../../translate.js';
 import * as db from '../../database.js';
-import { sanitize } from '../../regexes.js';
+import { sanitize } from '@ethgoose/utils/regex';
 import validator from 'validator';
 import fs from 'fs';
 import { fileURLToPath, URL } from 'url';

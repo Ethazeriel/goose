@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { log } from '../../logger.js';
-import { sanitize, youtubePattern, sanitizePlaylists } from '../../regexes.js';
+import { sanitize, youtubePattern, sanitizePlaylists } from '@ethgoose/utils/regex';
 import * as database from '../../database.js';
 import validator from 'validator';
 import fs from 'fs';

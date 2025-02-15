@@ -1,5 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { dragPattern, youtubePattern, youtubePlaylistPattern, spotifyPattern, napsterPattern, subsonicPattern } from './regexes.js';
+import { dragPattern, youtubePattern, youtubePlaylistPattern, spotifyPattern, napsterPattern, subsonicPattern } from '@ethgoose/utils/regex';
 
 export function timeDisplay(seconds:number) {
   let time = new Date(seconds * 1000).toISOString().substring(11, 19).replace(/^[0:]+/, '');

@@ -4,7 +4,7 @@ import * as utils from '../../utils.js';
 import { log, logDebug } from '../../logger.js';
 import * as database from '../../database.js';
 import fetch from '../../acquire.js';
-import { youtubePattern, spotifyPattern, sanitize, sanitizePlaylists } from '../../regexes.js';
+import { youtubePattern, spotifyPattern, sanitize, sanitizePlaylists } from '@ethgoose/utils/regex';
 import fs from 'fs';
 import { fileURLToPath, URL } from 'url';
 import { ChatInputCommandInteraction, GuildMemberRoleManager, InteractionUpdateOptions, InteractionReplyOptions } from 'discord.js';

@@ -1,4 +1,4 @@
-import { embedPage } from '../../regexes.js';
+import { embedPage } from '@ethgoose/utils/regex';
 import Player from '../../player.js';
 import { logDebug } from '../../logger.js';
 import { ButtonInteraction, InteractionDeferUpdateOptions, InteractionEditReplyOptions } from 'discord.js';

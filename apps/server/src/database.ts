@@ -5,7 +5,7 @@ import type { Db, Filter, FindOptions, UpdateFilter } from 'mongodb';
 import { log } from './logger.js';
 import chalk from 'chalk';
 const { mongo }:GooseConfig = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../config/config.json', import.meta.url).toString()), 'utf-8'));
-import { sanitizePlaylists } from './regexes.js';
+import { sanitizePlaylists } from '@ethgoose/utils/regex';
 import { isMainThread, workerData } from 'worker_threads';
 import { trackVersion, upgradeTrack } from './migrations.js';
 // import Player from './player.js';

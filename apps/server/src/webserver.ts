@@ -3,7 +3,7 @@ import { log, logDebug } from './logger.js';
 import Player from './player.js';
 import fetch from './acquire.js';
 import { toggleSlowMode } from './acquire.js';
-import { seekTime as seekRegex } from './regexes.js';
+import { seekTime as seekRegex } from '@ethgoose/utils/regex';
 import validator from 'validator';
 import { fileURLToPath, URL } from 'url';
 

@@ -6,7 +6,7 @@ import cookieParser from 'cookie-parser';
 import validator from 'validator';
 import { logDebug, log } from '../logger.js';
 import chalk from 'chalk';
-import { sanitize, webClientId as webIdRegex } from '../regexes.js';
+import { sanitize, webClientId as webIdRegex } from '@ethgoose/utils/regex';
 import { parentPort } from 'worker_threads';
 import crypto from 'crypto';
 import fs from 'fs';

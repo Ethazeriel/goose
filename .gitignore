@@ -8,6 +8,7 @@ node_modules
 
 #artefacts
 build
+dist
 *.tsbuildinfo
 compose/*
 

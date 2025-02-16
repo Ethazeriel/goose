@@ -2,14 +2,14 @@
   "extends": "../ts-config/tsconfig.json",
   "compilerOptions": {
     "rootDir":"src",
-    "outDir": "build",
+    "outDir": "dist",
     "types": ["node"],
     "paths": {
       "@ethgoose/*": ["./packages/*"]
     },
     "composite": true
   },
-  "exclude": ["build", "eslint.config.mjs"],
+  "exclude": ["dist", "eslint.config.mjs"],
   "references": [
     {
       "path": "../../packages/types"

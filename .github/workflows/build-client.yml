@@ -18,8 +18,8 @@ jobs:
       with:
         node-version: 22
         cache: 'npm'
-        cache-dependency-path: apps/client/package-lock.json
+        cache-dependency-path: ./package-lock.json
     - name: Install npm packages
-      run: npm install --prefix apps/client
+      run: npm install -w apps/client
     - name: Build the Client-side code
-      run: npm run --prefix apps/client build
+      run: npm run -w apps/client build

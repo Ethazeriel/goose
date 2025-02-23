@@ -19,7 +19,9 @@ jobs:
         node-version: 22
         cache: 'npm'
         cache-dependency-path: ./package-lock.json
-    - name: Install npm packages
+    - name: Install npm packages (utils)
+      run: npm install -w packages/utils
+    - name: Install npm packages (client)
       run: npm install -w apps/client
     - name: Build the Client-side code
       run: npm run -w apps/client build

@@ -16,10 +16,14 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
       with:
-        node-version: 20
+        node-version: 22
         cache: 'npm'
-        cache-dependency-path: client/package-lock.json
-    - name: Install npm packages
-      run: npm install --prefix client
+        cache-dependency-path: ./package-lock.json
+    - name: Install npm packages (utils)
+      run: npm install -w packages/utils
+    - name: Install npm packages (client)
+      run: npm install -w apps/client
+    - name: Build utils package
+      run: npm run -w packages/utils build
     - name: Build the Client-side code
-      run: npm run --prefix client build
+      run: npm run -w apps/client build

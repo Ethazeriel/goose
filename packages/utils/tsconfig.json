@@ -1,0 +1,18 @@
+{
+  "extends": "../ts-config/tsconfig.json",
+  "compilerOptions": {
+    "rootDir":"src",
+    "outDir": "dist",
+    "types": ["node"],
+    "paths": {
+      "@ethgoose/*": ["./packages/*"]
+    },
+    "composite": true
+  },
+  "exclude": ["dist", "eslint.config.mjs"],
+  "references": [
+    {
+      "path": "../../packages/types"
+    }
+  ]
+}

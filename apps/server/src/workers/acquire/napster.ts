@@ -5,7 +5,7 @@ import axios, { AxiosResponse } from 'axios';
 const { napster }:GooseConfig = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../../../config/config.json', import.meta.url).toString()), 'utf-8'));
 
 async function fromTrack(id:string):Promise<TrackSource> {
-  log('fetch', [`napsterFromTrack: ${id}`]);
+  log.info(`napsterFromTrack: ${id}`);
   const napsterResultAxios:AxiosResponse<NapsterTrackResult> = await axios({
     url: `http://api.napster.com/v2.2/tracks/${id}?apikey=${napster.client_id}`,
     method: 'get',
@@ -37,7 +37,7 @@ async function fromTrack(id:string):Promise<TrackSource> {
 }
 
 async function fromAlbum(id:string):Promise<Array<TrackSource>> {
-  log('fetch', [`napsterFromAlbum: ${id}`]);
+  log.info(`napsterFromAlbum: ${id}`);
   const napsterResultAxios:AxiosResponse<NapsterTrackResult> = await axios({
     url: `https://api.napster.com/v2.2/albums/${id}/tracks?apikey=${napster.client_id}`,
     method: 'get',
@@ -71,7 +71,7 @@ async function fromAlbum(id:string):Promise<Array<TrackSource>> {
 }
 
 async function fromPlaylist(id:string):Promise<Array<TrackSource>> {
-  log('fetch', [`napsterFromPlaylist: ${id}`]);
+  log.info(`napsterFromPlaylist: ${id}`);
   const napsterTracks = [];
   const limit = 50;
   let offset = 0;
@@ -114,7 +114,7 @@ async function fromPlaylist(id:string):Promise<Array<TrackSource>> {
 }
 
 async function fromText(search:string):Promise<TrackSource> {
-  log('fetch', [`napsterFromText: ${search}`]);
+  log.info(`napsterFromText: ${search}`);
   const napsterResultAxios:AxiosResponse<NapsterSearchResult> = await axios({
     url: `http://api.napster.com/v2.2/search?query=${search}&type=track&per_type_limit=1&apikey=${napster.client_id}`,
     method: 'get',

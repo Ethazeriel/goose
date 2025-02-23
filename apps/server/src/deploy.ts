@@ -8,8 +8,9 @@ const commands:object[] = [];
 const commandFiles = fs.readdirSync(fileURLToPath(new URL('./interactions/commands', import.meta.url).toString()), 'utf-8').filter(file => file.endsWith('.js'));
 const contextFiles = fs.readdirSync(fileURLToPath(new URL('./interactions/contexts', import.meta.url).toString()), 'utf-8').filter(file => file.endsWith('.js'));
 
+const deploylog = log.child({ module: 'deploy' });
 export async function deploy() {
-  log('command', [`Deploying commands to ${scope} scope`]);
+  deploylog.info(`Deploying commands to ${scope} scope`);
   for (const file of commandFiles) {
     const command = await import(`./interactions/commands/${file}`);
     commands.push(command.data.toJSON());
@@ -26,15 +27,15 @@ export async function deploy() {
         Routes.applicationGuildCommands(client_id, guildId),
         { body: commands },
       );
-      log('command', ['Successfully registered commands.']);
+      deploylog.info('Successfully registered commands.');
     } else if (scope === 'global') {
       await rest.put(
         Routes.applicationCommands(client_id),
         { body: commands },
       );
-      log('command', ['Successfully registered commands.']);
+      deploylog.info('Successfully registered commands.');
     } else {
-      log('command', ['Failed to deploy commands']);
+      deploylog.error('Failed to deploy commands');
     }
 
   } catch (error) {

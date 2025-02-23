@@ -54,12 +54,13 @@ export async function generateTrackEmbed(track:Track, messagetitle:string):Promi
   return { embeds: [npEmbed], files: [albumart] } as InteractionEditReplyOptions;
 }
 
-export async function mbArtistLookup(artist:string):Promise<string | undefined> {
+export async function mbArtistLookup(artist:string):Promise<string | undefined> { // TODO: rework entirely
   // check for Artist.official in db before sending lookup
   const track = await db.getTrack({ $and:[{ 'goose.artist.official':{ $type:'string' } }, { 'goose.artist.name':artist }] });
   if (track) { return track.goose.artist.official; } else {
     const axData1:null | AxiosResponse<IArtistList> = await axios(`https://musicbrainz.org/ws/2/artist?query=${encodeURIComponent(artist)}&limit=1&offset=0&fmt=json`).catch(error => {
-      log('error', ['MB artist search fail', `headers: ${JSON.stringify(error.response?.headers, null, 2)}`, error.stack]);
+      // log.error({ err:error }, `MB artist search fail - headers: ${JSON.stringify(error.response?.headers, null, 2)}`);
+      log.error(`MB artist lookup fail - code: ${error.code}`);
       return (null);
     });
     if (axData1) {
@@ -67,7 +68,8 @@ export async function mbArtistLookup(artist:string):Promise<string | undefined> 
       if (firstdata?.artists?.length) {
         const mbid = firstdata.artists[0].id;
         const axData2:null | AxiosResponse<IArtist> = await axios(`https://musicbrainz.org/ws/2/artist/${mbid}?inc=url-rels`).catch(error => {
-          log('error', ['MB artist lookup fail', `headers: ${JSON.stringify(error.response?.headers, null, 2)}`, error.stack]);
+          // log.error({ err:error }, `MB artist lookup fail - headers: ${JSON.stringify(error.response?.headers, null, 2)}`);
+          log.error(`MB artist lookup fail - code: ${error.code}`);
           return (null);
         });
         if (axData2) {

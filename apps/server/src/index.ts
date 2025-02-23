@@ -4,7 +4,7 @@ import { Client, Collection, GatewayIntentBits, VoiceChannel } from 'discord.js'
 import { fileURLToPath, URL } from 'url';
 const { discord, internal, functions }:GooseConfig = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../config/config.json', import.meta.url).toString()), 'utf-8'));
 const token = discord.token;
-import { log, logCommand, logComponent, logDebug } from './logger.js';
+import { log, logCommand, logComponent } from './logger.js';
 import * as database from './database.js';
 import chalk from 'chalk';
 import Player from './player.js';
@@ -59,10 +59,10 @@ client.once('ready', async () => {
     const config = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../config/config.json', import.meta.url).toString()), 'utf-8'));
     config.internal ? config.internal.deployedHash = hashash : config.internal = { deployedHash: hashash };
     fs.writeFileSync(fileURLToPath(new URL('../config/config.json', import.meta.url).toString()), JSON.stringify(config, null, 2));
-  } else { log('info', [`Commands appear up to date; hash is ${hashash}`]); }
+  } else { log.info(`Commands appear up to date; hash is ${hashash}`); }
 
-  logDebug(chalk.red.bold('DEBUG MODE ACTIVE'));
-  log('info', ['Ready!', `Node version: ${process.version}`]);
+  log.debug(`Log level: ${chalk.red.bold(log.level)}`);
+  log.info(`Ready! Node version: ${process.version}`);
   database.printCount();
 
   if (functions.web) { // this is bad code because it doesn't let things load asynchronously; consider revising
@@ -73,7 +73,7 @@ client.once('ready', async () => {
     for (const [channelId, channel] of guild.channels.cache) {
       if (channel instanceof VoiceChannel) {
         for (const [memberId, member] of channel.members) {
-          logDebug(`${member.user.bot ? 'bot' : 'user'} ${member.displayName} in voice in server ${guild.name}`);
+          log.trace(`${member.user.bot ? 'bot' : 'user'} ${member.displayName} in voice in server ${guild.name}`);
           voiceUsers[memberId] = { channelId: channelId, guildId: guildId };
         }
       }
@@ -81,13 +81,13 @@ client.once('ready', async () => {
   }
 
   for (const [guildId, guild] of client.guilds.cache) {
-    logDebug(`Checking users for ${guildId}`);
+    log.trace(`Checking users for ${guildId}`);
     for (const [userId, member] of guild.members.cache) {
       // if (member.user.username === 'Ethazeriel') {console.log(member.user);}
       (async () => {
         const user = await database.getUser(userId);
         if (!user) {
-          logDebug(`New user with ID ${userId}, username ${member.user.username}, discrim ${member.user.discriminator}, nickname ${member.nickname}`);
+          log.debug(`New user with ID ${userId}, username ${member.user.username}, discrim ${member.user.discriminator}, nickname ${member.nickname}`);
           await database.newUser({ id:userId, username:member.user.username, nickname:member.nickname, discriminator:member.user.discriminator, guild:guildId });
         } else {
           if (user.discord.username.current !== member.user.username) { await database.updateUser(userId, 'username', member.user.username); }
@@ -112,7 +112,7 @@ client.on('interactionCreate', async (interaction):Promise<void> => {
       logCommand(interaction);
       await command.execute(interaction);
     } catch (error:any) {
-      log('error', [error.stack]);
+      log.error(error.stack);
       await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
       return;
     }
@@ -123,7 +123,7 @@ client.on('interactionCreate', async (interaction):Promise<void> => {
     try {
       await selectMenu.execute(interaction);
     } catch (error:any) {
-      log('error', [error.stack]);
+      log.error(error.stack);
       await interaction.editReply({ content: 'There was an error while processing this select menu!', components: [], ephemeral: true } as InteractionEditReplyOptions);
       return;
     }
@@ -135,7 +135,7 @@ client.on('interactionCreate', async (interaction):Promise<void> => {
     try {
       await buttonPress.execute(interaction, match![2]);
     } catch (error:any) {
-      log('error', [error.stack]);
+      log.error(error.stack);
       await interaction.editReply({ content: 'There was an error while processing this button press!', components: [], ephemeral: true } as InteractionEditReplyOptions);
       return;
     }
@@ -146,7 +146,7 @@ client.on('interactionCreate', async (interaction):Promise<void> => {
       logCommand(interaction);
       await context.execute(interaction);
     } catch (error:any) {
-      log('error', [error.stack]);
+      log.error(error.stack);
       await interaction.followUp({ content: 'There was an error while executing this context menu!', ephemeral: true });
       return;
     }
@@ -154,10 +154,10 @@ client.on('interactionCreate', async (interaction):Promise<void> => {
 });
 
 client.on('guildMemberUpdate', async (oldUser, member) => {
-  log('info', ['Received guild member update']);
+  log.info('Received guild member update');
   const user = await database.getUser(member.user.id);
   if (!user) {
-    logDebug(`New user with ID ${member.user.id}, username ${member.user.username}, discrim ${member.user.discriminator}, nickname ${member.nickname}`);
+    log.debug(`New user with ID ${member.user.id}, username ${member.user.username}, discrim ${member.user.discriminator}, nickname ${member.nickname}`);
     await database.newUser({ id:member.user.id, username:member.user.username, nickname:member.nickname, discriminator:member.user.discriminator, guild:member.guild.id });
   } else {
     if (user.discord.username.current !== member.user.username) { await database.updateUser(member.user.id, 'username', member.user.username); }
@@ -168,10 +168,10 @@ client.on('guildMemberUpdate', async (oldUser, member) => {
 });
 
 client.on('guildMemberAdd', async member => {
-  log('info', ['New user arrived']);
+  log.info('New user arrived'); // TODO: refactor
   const user = await database.getUser(member.user.id);
   if (!user) {
-    logDebug(`New user with ID ${member.user.id}, username ${member.user.username}, discrim ${member.user.discriminator}, nickname ${member.nickname}`);
+    log.info(`New user with ID ${member.user.id}, username ${member.user.username}, discrim ${member.user.discriminator}, nickname ${member.nickname}`);
     await database.newUser({ id:member.user.id, username:member.user.username, nickname:member.nickname, discriminator:member.user.discriminator, guild:member.guild.id });
   } else {
     // the user already exists, but is new to this guild
@@ -181,7 +181,7 @@ client.on('guildMemberAdd', async member => {
 });
 
 client.on('userUpdate', async (oldUser, newUser) => {
-  log('info', [`Received global user update for ${newUser.id}`]);
+  log.info(`Received global user update for ${newUser.id}`);
   const user = await database.getUser(newUser.id);
   if (!user) {
     await database.newUser({ id:newUser.id, username:newUser.username, discriminator:newUser.discriminator });
@@ -200,19 +200,19 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
 
   // pretty sure these can't happen. lets find out. also break things instead of handling cases that probably don't need handled
   if (oldState.guild.id !== newState.guild.id) {
-    log('error', ['voice state cursed—old/new guild ID mismatch']); return;
+    log.warn('voice state cursed—old/new guild ID mismatch'); return;
   }
   if (oldState.id !== newState.id) {
-    log('error', ['voice state cursed—old/new user ID mismatch']); return;
+    log.warn('voice state cursed—old/new user ID mismatch'); return;
   }
   if ((oldState.member === null) && (newState.member === null)) {
-    log('error', ['voice state cursed—old/new member both null']); return;
+    log.warn('voice state cursed—old/new member both null'); return;
   }
   if ((newState.channelId) && !newState.member) {
-    log('error', ['voice state cursed—non-member joined channel']); return;
+    log.warn('voice state cursed—non-member joined channel'); return;
   }
   if (client.user === null) { // addressing inconsistent, weird behavior claiming this as a possible state. believe it's just
-    log('error', ['client user somehow null, despite ready']); return; // older discordjs types with updated lint/ typescript
+    log.warn('client user somehow null, despite ready'); return; // older discordjs types with updated lint/ typescript
   }
 
   // no change in channel, just state. if both were null we wouldn't be here, if both are equal we shouldn't be here
@@ -221,7 +221,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
   // logDebug(`Voice state change for server ${newState.guild.id}, user ${member.displayName}`);
 
   if (oldState.channelId) { // leave
-    logDebug(`${member.user.bot ? 'bot' : 'user'} ${member.displayName} left voice in server ${newState.guild.name}`);
+    log.debug(`${member.user.bot ? 'bot' : 'user'} ${member.displayName} left voice in server ${newState.guild.name}`);
     const { player:oldPlayer } = await Player.getPlayer(getVoiceUser(oldState.id)!, false); // todo improve types
     oldPlayer?.voiceLeave(oldState, newState, client);
   }
@@ -242,7 +242,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
   if (client.user.id === newState.id && oldState.channelId) { return; } // bot is not allowed to switch channels for now
 
   if (newState.channelId) { // join
-    logDebug(`${member.user.bot ? 'bot' : 'user'} ${member.displayName} joined voice in server ${newState.guild.name}`);
+    log.debug(`${member.user.bot ? 'bot' : 'user'} ${member.displayName} joined voice in server ${newState.guild.name}`);
     const { player:newPlayer } = await Player.getPlayer(getVoiceUser(newState.id)!, false); // todo improve types
     newPlayer?.voiceJoin(oldState, newState, client);
   }
@@ -258,14 +258,14 @@ export function getVoiceUser(userID:string):undefined | VoiceUser & { adapterCre
   if (!voiceUser) { return; }
   const adapterCreator = client.guilds.cache.get(voiceUser.guildId)?.voiceAdapterCreator;
   if (!adapterCreator) { // shouldn't be overly possible
-    log('error', [`undefined voice adapter for ${voiceUser.guildId}`]);
+    log.warn(`undefined voice adapter for ${voiceUser.guildId}`);
     return;
   }
   return { ...voiceUser, adapterCreator: adapterCreator };
 }
 
 client.on('messageCreate', async message => {
-  logDebug(`${chalk.blue(message.author.username)}: ${validator.escape(validator.stripLow(message.content || '')).trim()}`);
+  log.trace(`${chalk.blue(message.author.username)}: ${validator.escape(validator.stripLow(message.content || '')).trim()}`);
   if (!message.author.bot) { Translator.messageEventDispatch(message); }
 });
 
@@ -274,7 +274,7 @@ client.login(token);
 
 // handle exits
 process.on('SIGTERM', async () => {
-  log('info', ['received termination command, exiting']);
+  log.fatal('received termination command, exiting');
   await database.closeDB();
   process.exit();
 });

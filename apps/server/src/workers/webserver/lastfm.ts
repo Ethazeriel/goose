@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 import * as db from '../../database.js';
 import fs from 'fs';
 import { fileURLToPath, URL } from 'url';
-import { logDebug, log } from '../../logger.js';
+import { log } from '../../logger.js';
 import crypto from 'crypto';
 import chalk from 'chalk';
 const { lastfm, mongo }:GooseConfig = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../../../config/config.json', import.meta.url).toString()), 'utf-8'));
@@ -26,13 +26,13 @@ export async function auth(token:string, webClientId:string) {
     headers: { 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
     timeout: 10000,
   }).catch(error => {
-    log('error', ['Oauth2: ', error.stack, error?.data]);
+    log.error(error);
     return;
   });
 
   if (AxToken?.data) {
     const fmresult = AxToken.data;
-    logDebug('successful auth - saving to db');
+    log.trace('successful auth - saving to db');
     await saveToken(fmresult, webClientId);
     await updateUser(fmresult, webClientId);
 
@@ -53,9 +53,9 @@ async function saveToken(authtoken:LastFMTokenResponse, webClientId:string):Prom
       scope: 'not applicable',
     };
     await userdb.updateOne({ webClientId: webClientId }, { $set:{ 'tokens.lastfm':token } });
-    log('database', ['Saving lastfm auth token']);
+    log.info('Saving lastfm auth token');
   } catch (error:any) {
-    log('error', ['database error:', error.stack]);
+    log.error(error);
   }
 }
 
@@ -69,8 +69,8 @@ async function updateUser(authtoken:LastFMTokenResponse, webClientId:string):Pro
   try {
     const userdb = dab.collection<User>(usercol);
     await userdb.updateOne({ webClientId: webClientId }, { $set: { lastfm:dblastfm } });
-    log('database', [`Updating LastFM userdata for ${chalk.green(dblastfm.username)}`]);
+    log.info(`Updating LastFM userdata for ${chalk.green(dblastfm.username)}`);
   } catch (error:any) {
-    log('error', ['database error:', error.stack]);
+    log.error(error);
   }
 }

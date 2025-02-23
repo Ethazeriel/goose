@@ -14,14 +14,15 @@ let url = mongo.url;
 const dbname = mongo.database;
 const trackcol = mongo.trackcollection;
 const usercol = mongo.usercollection;
+const dblog = log.child({ module: 'db' });
 if (process.env.DOCKER) { url = process.env.MONGO_CONN_STR!; }
 let globalDb:Db | undefined;
 const con = await MongoClient.connect(url, { ignoreUndefined: true });
 globalDb = con.db(dbname);
 if (isMainThread) {
-  log('database', [`Main thread connected to db: ${dbname}`]);
+  dblog.info(`Main thread connected to db: ${dbname}`);
 } else {
-  log('database', [`${workerData?.name} worker connected to database: ${dbname}`]);
+  dblog.info(`${workerData?.name} worker connected to database: ${dbname}`);
 }
 
 export async function getDb():Promise<Db> { // await this in your code to wait for the db to connect before doing things
@@ -41,9 +42,9 @@ export async function closeDB():Promise<object | undefined> {
   try {
     globalDb = undefined;
     await con.close();
-    log('database', [`Closed connection: ${dbname}`]);
+    dblog.info(`Closed connection: ${dbname}`);
   } catch (error:any) {
-    log('error', ['database error:', error.message]);
+    dblog.error({ err: error }, 'database error:');
     return error;
   }
 }
@@ -61,7 +62,7 @@ export async function getTrack(query:Filter<Track>):Promise<Track | undefined> {
       }
     }
   } catch (error:any) {
-    log('error', ['database error:', error.stack]);
+    dblog.error({ err: error }, 'getTrack error:');
   }
 }
 /*
@@ -95,7 +96,7 @@ export async function insertTrack(track:Track):Promise<object | undefined> {
   if (test == null || ((test.audioSource.youtube && track.audioSource.youtube && test.audioSource.youtube[0].id != track.audioSource.youtube[0].id) && test.goose.id != track.goose.id)) {
     // we don't have this in our database yet, so
     const result = await tracks.insertOne(track);
-    log('database', [`Adding track ${chalk.green(track.goose.track.name)} by ${chalk.green(track.goose.artist.name)} to database`]);
+    dblog.info(`Adding track ${chalk.green(track.goose.track.name)} by ${chalk.green(track.goose.artist.name)} to database`);
     return result;
   } else { throw new Error(`Track ${track.goose.id} already exists! (youtube: ${track.audioSource.youtube ? track.audioSource.youtube[0].id : 'none'})`);}
   // I've removed the try/catch block here so this error is actually meaningful
@@ -109,9 +110,9 @@ export async function addKey(query:Filter<Track>, newkey:string) {
   try {
     const tracks = db.collection<Track>(trackcol);
     await tracks.updateOne(query, { $addToSet: { keys: newkey.toLowerCase() } });
-    log('database', [`Adding key ${chalk.blue(newkey.toLowerCase())} to ${chalk.green(JSON.stringify(query))}`]);
+    dblog.info(`Adding key ${chalk.blue(newkey.toLowerCase())} to ${chalk.green(JSON.stringify(query))}`);
   } catch (error:any) {
-    log('error', ['database error:', error.stack]);
+    dblog.error({ err: error }, 'addKey error:');
   }
 }
 // addKey({ 'spotify.id': '7BnKqNjGrXPtVmPkMNcsln' }, 'celestial%20elixr');
@@ -124,9 +125,9 @@ export async function addSourceId(query:Filter<Track>, type:'spotify' | 'napster
     const tracks = db.collection<Track>(trackcol);
     const target = `${type}.id`;
     await tracks.updateOne(query, { $addToSet: { [target]: newid } });
-    log('database', [`Adding ${type} id ${chalk.blue(newid)} to ${chalk.green(JSON.stringify(query))}`]);
+    dblog.info(`Adding ${type} id ${chalk.blue(newid)} to ${chalk.green(JSON.stringify(query))}`);
   } catch (error:any) {
-    log('error', ['database error:', error.stack]);
+    dblog.error({ err: error }, 'addSourceId error:');
   }
 }
 // addSourceId({ 'goose.id': '12345abcde' }, 'spotify', '6i71OngJrJDr6hQIFmzYI0');
@@ -139,9 +140,9 @@ export async function addPlayableSourceId(query:Filter<Track>, type:'subsonic', 
     const tracks = db.collection<Track>(trackcol);
     const target = `audioSource.${type}.id`;
     await tracks.updateOne(query, { $addToSet: { [target]: newid } });
-    log('database', [`Adding ${type} id ${chalk.blue(newid)} to ${chalk.green(JSON.stringify(query))}`]);
+    dblog.info(`Adding ${type} id ${chalk.blue(newid)} to ${chalk.green(JSON.stringify(query))}`);
   } catch (error:any) {
-    log('error', ['database error:', error.stack]);
+    dblog.error({ err: error }, 'addPlayableSourceId error:');
   }
 }
 
@@ -150,9 +151,9 @@ export async function addTrackSource(query:Filter<Track>, type:'spotify' | 'naps
   try {
     const tracks = db.collection<Track>(trackcol);
     await tracks.updateOne(query, { $set: { [type]: source } } as UpdateFilter<Track>);
-    log('database', [`Adding ${type} source to ${chalk.green(query)}`]);
+    dblog.info(`Adding ${type} source to ${chalk.green(query)}`);
   } catch (error:any) {
-    log('error', ['database error:', error.stack]);
+    dblog.error({ err: error }, 'addTrackSource error:');
   }
 }
 
@@ -163,9 +164,9 @@ export async function addPlayableTrackSource(query:Filter<Track>, type:'subsonic
     const target = `audioSource.${type}`;
     // duration needs work in future for only updating if added source is higher preference
     await tracks.updateOne(query, { $set: { [target]: source, 'goose.track.duration':source.duration } } as UpdateFilter<Track>);
-    log('database', [`Adding ${type} source to ${chalk.green(query)}`]);
+    dblog.info(`Adding ${type} source to ${chalk.green(query)}`);
   } catch (error:any) {
-    log('error', ['database error:', error.stack]);
+    dblog.error({ err: error }, 'addPlayableTrackSource error:');
   }
 }
 
@@ -182,13 +183,13 @@ export async function addPlaylist(trackarray:Track[], listname:string) {
         const query = { 'goose.id': element.goose.id };
         const field = `playlists.${name}`;
         await tracks.updateOne(query, { $set: { [field]:index } as Partial<Track> });
-        log('database', [`Adding playlist entry ${chalk.blue(name + ':' + index)} to ${chalk.green(element.goose.track.name)} by ${chalk.green(element.goose.artist.name)}`]);
+        dblog.info(`Adding playlist entry ${chalk.blue(name + ':' + index)} to ${chalk.green(element.goose.track.name)} by ${chalk.green(element.goose.artist.name)}`);
       });
     } catch (error:any) {
-      log('error', ['database error:', error.stack]);
+      dblog.error({ err: error }, 'addPlaylist error:');
     }
   } else {
-    log('database', [`User attempted to add new playlist ${chalk.blue(listname)}, which already exists.`]);
+    dblog.warn(`User attempted to add new playlist ${chalk.blue(listname)}, which already exists.`);
     return `Playlist ${listname} already exists.`;
   }
 }
@@ -214,11 +215,11 @@ export async function getPlaylist(listname:string):Promise<Track[]> {
     await Promise.allSettled(resultPromises).then(promises => {
       for (const promise of promises) {
         if (promise.status === 'fulfilled') { finishedArray.push(promise.value); }
-        if (promise.status === 'rejected') { log('error', ['life is pain, playlist recall failed, how do promises work']);}
+        if (promise.status === 'rejected') { dblog.error('life is pain, playlist recall failed, how do promises work');}
       }
     });
   } catch (error:any) {
-    log('error', ['database error:', error.stack]);
+    dblog.error({ err: error }, 'getPlaylist error:');
   }
   return finishedArray;
 }
@@ -232,10 +233,10 @@ export async function removePlaylist(listname:string):Promise<number | undefined
     const query = { [qustr]: { $exists: true } };
     const filt:UpdateFilter<Track> = { $unset:{ [qustr]: '' } };
     const result = await tracks.updateMany(query, filt);
-    log('database', [`Removed playlist ${chalk.blue(name)} from ${chalk.green(result.modifiedCount)} tracks.`]);
+    dblog.info(`Removed playlist ${chalk.blue(name)} from ${chalk.green(result.modifiedCount)} tracks.`);
     return result.modifiedCount;
   } catch (error:any) {
-    log('error', ['database error:', error.stack]);
+    dblog.error({ err: error }, 'removePlaylist error:');
   }
 }
 
@@ -245,9 +246,9 @@ export async function updateTrack(query:Filter<Track>, update:UpdateFilter<Track
   try {
     const tracks = db.collection<Track>(trackcol);
     await tracks.updateOne(query, update);
-    log('database', [`Updating track ${chalk.blue(JSON.stringify(query, null, 2))} with data ${chalk.green(JSON.stringify(update, null, 2))}`]);
+    dblog.info(`Updating track ${chalk.blue(JSON.stringify(query, null, 2))} with data ${chalk.green(JSON.stringify(update, null, 2))}`);
   } catch (error:any) {
-    log('error', ['database error:', error.stack]);
+    dblog.error({ err: error }, 'updateTrack error:');
   }
 }
 
@@ -259,13 +260,13 @@ export async function removeTrack(query:string) {
     const tracks = db.collection<Track>(trackcol);
     const track = await tracks.deleteOne({ 'audioSource.youtube.0.id':query });
     if (track.deletedCount === 1) {
-      log('database', [`Removed track ${chalk.red(query)} from DB.`]);
+      dblog.info(`Removed track ${chalk.red(query)} from DB.`);
     } else {
-      log('database', [`Removing track ${chalk.red(query)} failed - was not in the DB or something else went wrong`]);
+      dblog.warn(`Removing track ${chalk.red(query)} failed - was not in the DB or something else went wrong`);
     }
     return track.deletedCount;
   } catch (error:any) {
-    log('error', ['database error:', error.stack]);
+    dblog.error({ err: error }, 'removeTrack error:');
   }
 }
 // usage: await db.removeTrack('DjaE3w8j6vY');
@@ -292,12 +293,12 @@ export async function switchAlternate(query:string, alternate:number | TrackYout
       };
       const result = await tracks.updateOne(search, update);
       if (result.modifiedCount == 1) {
-        log('database', [`Remapped track ${chalk.green(original)} to ${chalk.green(track.audioSource.youtube[0].id)}`]);
-      } else {log('database', [`Failed to remap ${chalk.red(original)} - is this a valid ID?`]);}
+        dblog.info(`Remapped track ${chalk.green(original)} to ${chalk.green(track.audioSource.youtube[0].id)}`);
+      } else {dblog.warn(`Failed to remap ${chalk.red(original)} - is this a valid ID?`);}
       return result.modifiedCount;
     } else {return 0;}
   } catch (error:any) {
-    log('error', ['database error:', error.stack]);
+    dblog.error({ err: error }, 'switchAlternate error:');
     return 0;
   }
 }
@@ -308,10 +309,10 @@ export async function printCount():Promise<number | undefined> {
   try {
     const tracks = db.collection<Track>(trackcol);
     const number = await tracks.countDocuments();
-    log('database', [`We currently have ${chalk.green(number)} tracks in the ${dbname} database, collection ${trackcol}.`]);
+    dblog.info(`We currently have ${chalk.green(number)} tracks in the ${dbname} database, collection ${trackcol}.`);
     return number;
   } catch (error:any) {
-    log('error', ['database error:', error.stack]);
+    dblog.error({ err: error }, 'printCount error:');
   }
 }
 
@@ -330,7 +331,7 @@ export async function listPlaylists():Promise<Set<string> | undefined> {
     });
     return result;
   } catch (error:any) {
-    log('error', ['database error:', error.stack]);
+    dblog.error({ err: error }, 'listPlaylists error:');
   }
 }
 
@@ -340,9 +341,9 @@ export async function logPlay(id:string, success = true):Promise<void> {
     const tracks = db.collection<Track>(trackcol);
     const update = success ? { $inc: { 'goose.plays': 1 } } : { $inc: { 'goose.errors': 1, 'goose.plays': 1 } };
     await tracks.updateOne({ 'goose.id': id }, update);
-    log('database', [`Logging ${success ? chalk.green('successful play') : chalk.red('play error')} for track ${chalk.blue(id)}`]);
+    dblog.info(`Logging ${success ? chalk.green('successful play') : chalk.red('play error')} for track ${chalk.blue(id)}`);
   } catch (error:any) {
-    log('error', ['database error:', error.stack]);
+    dblog.error({ err: error }, 'logPlay error:');
   }
 }
 
@@ -351,9 +352,9 @@ export async function updateOfficial(id:string, link:string) {
   try {
     const tracks = db.collection<Track>(trackcol);
     await tracks.updateOne({ 'goose.id': id }, { $set: { 'goose.artist.official': link } });
-    log('database', [`Updated artist link to ${link} for track ${chalk.blue(id)}`]);
+    dblog.info(`Updated artist link to ${link} for track ${chalk.blue(id)}`);
   } catch (error:any) {
-    log('error', ['database error:', error.stack]);
+    dblog.error({ err: error }, 'updateOfficial error:');
   }
 }
 
@@ -390,11 +391,11 @@ export async function newUser(discord:DiscordUser) { // usage: await newUser({ i
         tokens: {},
       };
       const result = await userdb.insertOne(object);
-      log('database', [`Adding user ${chalk.green(`${discord.username}#${discord.discriminator}`)} to database`]);
+      dblog.info(`Adding user ${chalk.green(`${discord.username}#${discord.discriminator}`)} to database`);
       return result;
     } else { throw new Error(`User ${chalk.red(discord.username)} already exists!`);}
   } catch (error:any) {
-    log('error', ['database error:', error.message]);
+    dblog.error({ err: error }, 'newUser error:');
   }
 }
 
@@ -406,7 +407,7 @@ export async function getUser(discordid:string):Promise<User | undefined> { // u
     const result = await userdb.findOne({ 'discord.id': discordid }, { projection: { _id: 0 } });
     if (result) {return result; }
   } catch (error:any) {
-    log('error', ['database error:', error.stack]);
+    dblog.error({ err: error }, 'getUser error:');
   }
 }
 
@@ -439,10 +440,10 @@ export async function updateUser(discordid:string, field:'nickname' | 'locale' |
     }
     update = (field === 'locale') ? { $set: { 'discord.locale':data } } : update;
     const result = await userdb.updateOne({ 'discord.id': discordid }, update as UpdateFilter<User>);
-    log('database', [`Updating info for ${chalk.blue(discordid)}: ${chalk.green(field)} is now ${chalk.green(data)}`]);
+    dblog.info(`Updating info for ${chalk.blue(discordid)}: ${chalk.green(field)} is now ${chalk.green(data)}`);
     return result;
   } catch (error:any) {
-    log('error', ['database error:', error.stack]);
+    dblog.error({ err: error }, 'updateUser error:');
   }
 }
 
@@ -469,12 +470,12 @@ export async function saveStash(userIDs:string[], playhead:number, queue:Track[]
   try {
     const userdb = db.collection<User>(usercol);
     const results = userIDs.map(async id => {
-      log('database', [`Updating stash for ${chalk.blue(id)}: Playhead ${chalk.green(stash.playhead)}, ${chalk.green((stash.tracks.length))} tracks`]);
+      dblog.info(`Updating stash for ${chalk.blue(id)}: Playhead ${chalk.green(stash.playhead)}, ${chalk.green((stash.tracks.length))} tracks`);
       return userdb.updateOne({ 'discord.id': id }, { $set:{ stash:stash } });
     });
     return await Promise.allSettled(results); // I haven't tested if this is correct, but it's unused
   } catch (error:any) {
-    log('error', ['database error:', error.stack]);
+    dblog.error({ err: error }, 'saveStash error:');
   }
 }
 
@@ -493,7 +494,7 @@ export async function getStash(discordid:string) { // usage: const result = awai
       return { playhead:user.stash.playhead, tracks:queue };
     }
   } catch (error:any) {
-    log('error', ['database error:', error.stack]);
+    dblog.error({ err: error }, 'getStash error:');
   }
 }
 
@@ -518,7 +519,7 @@ export async function getUserWeb(webid:string):Promise<WebUser | undefined> {
       return basicuser;
     } else { return undefined; }
   } catch (error:any) {
-    log('error', ['database error:', error.stack]);
+    dblog.error({ err: error }, 'getUserWeb error:');
   }
 }
 
@@ -526,19 +527,19 @@ export async function getUserWeb(webid:string):Promise<WebUser | undefined> {
 // generic functions
 // *****************
 
-export async function genericUpdate(query:object, changes:object, collection:string):Promise<void> {
+export async function genericUpdate(query:object, changes:object, collection:string):Promise<void> { // TODO: remove?
   // generic update function; basically just a wrapper for updateOne
   const db = await getDb();
   try {
     const coll = db.collection(collection);
     await coll.updateOne(query, changes);
-    log('database', [`Updating ${collection}: ${chalk.blue(JSON.stringify(query, null, 2))} with data ${chalk.green(JSON.stringify(changes, null, 2))}`]);
+    dblog.info(`Updating ${collection}: ${chalk.blue(JSON.stringify(query, null, 2))} with data ${chalk.green(JSON.stringify(changes, null, 2))}`);
   } catch (error:any) {
-    log('error', ['database error:', error.stack]);
+    dblog.error({ err: error }, 'genericUpdate error:');
   }
 }
 
-export async function genericGet(query:object, collection:string):Promise<Document|undefined> { // arc v1
+export async function genericGet(query:object, collection:string):Promise<Document|undefined> { // TODO: remove?
   // returns the first item that matches the query
   const db = await getDb();
   try {
@@ -546,7 +547,7 @@ export async function genericGet(query:object, collection:string):Promise<Docume
     const result = await coll.findOne(query, { projection: { _id: 0 } });
     if (result) { return result; }
   } catch (error:any) {
-    log('error', ['database error:', error.stack]);
+    dblog.error({ err: error }, 'genericGet error:');
   }
 }
 

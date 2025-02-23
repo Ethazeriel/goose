@@ -4,7 +4,7 @@ import express from 'express';
 import cookie from 'cookie';
 import cookieParser from 'cookie-parser';
 import validator from 'validator';
-import { logDebug, log } from '../logger.js';
+import { log as logBase } from '../logger.js';
 import chalk from 'chalk';
 import { sanitize, webClientId as webIdRegex } from '@ethgoose/utils/regex';
 import { parentPort } from 'worker_threads';
@@ -22,9 +22,10 @@ import proxy from 'express-http-proxy';
 import { createValidator } from 'express-joi-validation';
 import { playerQueueSchema } from './webserver/validation.js';
 
+const log = logBase.child({ module: 'web' });
 parentPort!.on('message', async data => {
   if (data.action === 'exit') {
-    log('info', ['Worker exiting']);
+    log.fatal('Worker exiting');
     await db.closeDB();
     process.exit();
   }
@@ -49,14 +50,14 @@ app.use(cookieParser(discord.secret));
 
 app.get('/', (req, res) => {
   // we're behind a proxy, this should never get hit
-  log(req.method, [req.originalUrl]);
+  log.warn([req.method, req.originalUrl]);
   // log('get', [`Endpoint ${chalk.blue('/')}`]);
   res.redirect(302, root_url);
 });
 
 // minimum requirements for endpoints
 app.get('/example-endpoint', async (req, res) => {
-  log(req.method, [req.originalUrl]);
+  log.trace([req.method, req.originalUrl]);
   const webId = req.signedCookies.id;
   if (!(webId && webIdRegex.test(webId))) { res.status(400).send('ID Cookie not set or invalid'); } else {
     const user = await db.getUserWeb(webId);
@@ -68,13 +69,13 @@ app.get('/example-endpoint', async (req, res) => {
 });
 
 app.get('/load', async (req, res) => {
-  log(req.method, [req.originalUrl]);
+  log.trace([req.method, req.originalUrl]);
   const webId = req.signedCookies.id;
-  logDebug(`Client load event with id ${webId}`);
+  log.debug(`Client load event with id ${webId}`);
   if (webId && webIdRegex.test(webId)) {
     const user:WebUser | undefined = await db.getUserWeb(webId);
     if (user) {
-      logDebug(`webserver worker—recognizes user ${user.discord.username}`);
+      log.debug(`webserver worker—recognizes user ${user.discord.username}`);
       const id = crypto.randomBytes(5).toString('hex');
       parentPort!.postMessage({ type:'player', action: 'get', id: id, userId: user.discord.id, userName:user.discord.username });
       const messageAction = (result:WebParentMessage) => {
@@ -85,9 +86,9 @@ app.get('/load', async (req, res) => {
         }
       };
       parentPort!.on('message', messageAction);
-    } else { logDebug('webserver worker—user has cookie but is not in db'); res.json({ user: { status: 'new' } }); }
+    } else { log.debug('webserver worker—user has cookie but is not in db'); res.json({ user: { status: 'new' } }); }
   } else {
-    logDebug('webserver worker—cookie nullish/ failed regex, assigning new');
+    log.trace('webserver worker—cookie nullish/ failed regex, assigning new');
     // this user doesn't have a cookie or their cookie isn't valid
     const webClientId = crypto.randomBytes(64).toString('hex');
     res.cookie('id', webClientId, { maxAge:525600000000, httpOnly:true, secure:true, signed:true });
@@ -97,7 +98,7 @@ app.get('/load', async (req, res) => {
 
 // oauth flow
 app.get('/oauth2', async (req, res) => {
-  log(req.method, [req.originalUrl]);
+  log.trace([req.method, req.originalUrl]);
   const webId = req.signedCookies.id;
   if (!(webId && webIdRegex.test(webId))) { res.status(400).send('This function requires a client ID cookie'); } else {
     const type = validator.escape(validator.stripLow(((req.query?.type as string)?.replace(sanitize, '') || ''))).trim(); // should always have this
@@ -117,7 +118,7 @@ app.get('/oauth2', async (req, res) => {
       // state check to protect against XSRF
       res.status(409).end();
     } else if (type !== 'discord' && type !== 'spotify' && type !== 'napster') { // we should never hit this but typescript demands it
-      logDebug(type);
+      log.warn(type);
       return;
     } else { // the client has approved, so let's go do our thing
       const auth = await oauth2.flow(type, code, webId);
@@ -128,7 +129,7 @@ app.get('/oauth2', async (req, res) => {
 
 // neutered auth flow for lastfm, as they don't follow the oauth spec at all :(
 app.get('/basicauth', async (req, res) => {
-  log(req.method, [req.originalUrl]);
+  log.trace([req.method, req.originalUrl]);
   const webId = req.signedCookies.id;
   if (!(webId && webIdRegex.test(webId))) { res.status(400).send('This function requires a client ID cookie'); } else {
     const type = validator.escape(validator.stripLow(((req.query?.type as string)?.replace(sanitize, '') || ''))).trim(); // should always have this
@@ -141,7 +142,7 @@ app.get('/basicauth', async (req, res) => {
       }
       res.redirect(303, target);
     } else if (type !== 'lastfm') { // we should never hit this but typescript demands it
-      logDebug(type);
+      log.warn(type);
       return;
     } else { // the client has approved, so let's go do our thing
       const auth = await lastfmactions.auth(token, webId);
@@ -153,7 +154,7 @@ app.get('/basicauth', async (req, res) => {
 
 // returns a track for the given id
 app.get('/tracks/:type(youtube|goose|spotify)-:id([\\w-]{11}|[a-zA-Z0-9]{22}|[0-9a-f]{10})', async (req, res) => {
-  log(req.method, [req.originalUrl]);
+  log.trace([req.method, req.originalUrl]);
   // log('get', [`Endpoint ${chalk.blue('/tracks')}, type ${chalk.green(req.params.type)}, id ${chalk.green(req.params.id)}`]);
   const webId = req.signedCookies.id;
   if (!(webId && webIdRegex.test(webId))) { res.status(400).send('ID Cookie not set or invalid'); } else {
@@ -169,7 +170,7 @@ app.get('/tracks/:type(youtube|goose|spotify)-:id([\\w-]{11}|[a-zA-Z0-9]{22}|[0-
 // returns a playlist
 // this regex should match sanitizePlaylists, but without the not
 app.get('/playlist/:name([\\w :/?=&-]+)', async (req, res) => {
-  log(req.method, [req.originalUrl]);
+  log.trace([req.method, req.originalUrl]);
   // log('get', [`Endpoint ${chalk.blue('/playlist')}, name ${chalk.green(req.params.name)}`]);
   const webId = req.signedCookies.id;
   if (!(webId && webIdRegex.test(webId))) { res.status(400).send('ID Cookie not set or invalid'); } else {
@@ -183,7 +184,7 @@ app.get('/playlist/:name([\\w :/?=&-]+)', async (req, res) => {
 
 // returns the list of playlists
 app.get('/playlists', async (req, res) => {
-  log(req.method, [req.originalUrl]);
+  log.trace([req.method, req.originalUrl]);
   // log('get', [`Endpoint ${chalk.blue('/playlists')}`]);
   const webId = req.signedCookies.id;
   if (!(webId && webIdRegex.test(webId))) { res.status(400).send('ID Cookie not set or invalid'); } else {
@@ -196,7 +197,7 @@ app.get('/playlists', async (req, res) => {
 
 // returns the queue for the player with the given id
 app.get('/player-:playerId([0-9]{18})', async (req, res) => {
-  log(req.method, [req.originalUrl]);
+  log.trace([req.method, req.originalUrl]);
   const webId = req.signedCookies.id;
   if (!(webId && webIdRegex.test(webId))) { res.status(400).send('ID Cookie not set or invalid'); } else {
     const user = await db.getUserWeb(webId);
@@ -217,13 +218,13 @@ app.get('/player-:playerId([0-9]{18})', async (req, res) => {
 // take actions on the player with the given id
 app.post('/player', joiValidator.body(playerQueueSchema), async (req, res) => {
   const webId = req.signedCookies.id;
-  logDebug(`Client load event with id ${webId}`);
+  log.debug(`Client load event with id ${webId}`);
   if (webId && webIdRegex.test(webId)) {
     const user = await db.getUserWeb(webId);
     if (user) {
       const action = req.body.action;
       const parameter = req.body.parameter;
-      log(req.method, [req.originalUrl, chalk.green(action)]);
+      log.trace([req.method, req.originalUrl, chalk.green(action)]);
       // log('post', [`Endpoint ${chalk.blue('/player')}, code ${chalk.green(req.body.code)}`]);
       const id = crypto.randomBytes(5).toString('hex');
       parentPort!.postMessage({ type:'player', action:action, parameter:parameter, id:id, userId: user.discord.id, userName:user.discord.username });
@@ -240,7 +241,7 @@ app.post('/player', joiValidator.body(playerQueueSchema), async (req, res) => {
 
 // get a user's spotify playlists
 app.get('/spotify-playlists', async (req, res) => {
-  log(req.method, [req.originalUrl]);
+  log.trace([req.method, req.originalUrl]);
   const webId = req.signedCookies.id;
   if (!(webId && webIdRegex.test(webId))) { res.status(400).send('ID Cookie not set or invalid'); } else {
     const user = await db.getUserWeb(webId);
@@ -262,7 +263,7 @@ app.get('/spotify-playlists', async (req, res) => {
 
 // get a spotify playlist by id, returns trackSource array
 app.get('/spotify-playlist/:id([a-zA-Z0-9]{22})', async (req, res) => {
-  log(req.method, [req.originalUrl]);
+  log.trace([req.method, req.originalUrl]);
   const webId = req.signedCookies.id;
   if (!(webId && webIdRegex.test(webId))) { res.status(400).send('ID Cookie not set or invalid'); } else {
     const user = await db.getUserWeb(webId);
@@ -271,7 +272,7 @@ app.get('/spotify-playlist/:id([a-zA-Z0-9]{22})', async (req, res) => {
       // probably excessive sanitization - the regex in the endpoint target should make this unneccessary, but codeql doesn't agree so let's just do something basic to appease it
       // if I was less lazy I would use the regex above instead of the generic sanitize
       const playlistId = validator.escape(validator.stripLow(req.params.id).replace(sanitize, '')).trim();
-      logDebug('getting playlist');
+      log.trace('getting playlist');
       const playlist = await spotifyactions.getPlaylist(playlistId);
       res.json(playlist);
     }
@@ -284,7 +285,7 @@ app.use('/subsonic-art/:id([a-f0-9]{32})', proxy(subsonic.endpoint_uri, { proxyR
 
 // Websocket
 const httpServer = app.listen(port, () => {
-  log('info', [`Web server active at http://localhost:${port}`]);
+  log.info(`Web server active at http://localhost:${port}`);
 });
 
 // TODO - get rid of this any, at some point the type stopped working and we have no idea why or how
@@ -299,11 +300,11 @@ const wss = new WebSocketServer<any>({ server: httpServer, clientTracking: true 
 const wssInterval = setInterval(() => {
   for (const client of wss.clients) {
     if (client.isAlive === false) {
-      logDebug('wssInterval, terminating client');
+      log.trace('wssInterval, terminating client');
       client.terminate();
-      logDebug(`clients' size: ${wss.clients.size}`);
+      log.trace(`clients' size: ${wss.clients.size}`);
     } else {
-      logDebug('wssInterval, pinging client');
+      log.trace('wssInterval, pinging client');
       client.isAlive = false;
       client.ping();
     }
@@ -318,7 +319,7 @@ wss.on('connection', async (ws, req) => {
       const user = await db.getUserWeb(webId);
       if (user) {
         // debug = user;
-        logDebug(`${user.discord.username} connected—clients' size: ${wss.clients.size}`);
+        log.trace(`${user.discord.username} connected—clients' size: ${wss.clients.size}`);
       } else { ws.terminate(); }
     } else { ws.terminate(); }
   } else { ws.terminate(); }
@@ -334,7 +335,7 @@ wss.on('connection', async (ws, req) => {
   });
 });
 wss.on('close', () => {
-  logDebug('WebSocketServer closing');
+  log.trace('WebSocketServer closing');
   clearInterval(wssInterval);
 });
 

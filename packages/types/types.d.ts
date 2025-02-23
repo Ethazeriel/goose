@@ -90,7 +90,7 @@ interface Track {
 	}
 	keys: Array<string>
 	playlists: Record<string, number>
-	audioSource: AtLeastOne<AudioSources>	
+	audioSource: AtLeastOne<AudioSources>
 	bar?: ProgressBarOptions
 	spotify?: TrackSource
 	napster?: TrackSource
@@ -150,7 +150,7 @@ type AudioSources = {
 }
 
 interface GooseConfig {
-	debug: boolean,
+	logLevel: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal'
 	functions: { // TODO - should we keep this?
 		web: boolean,
 		music: boolean,

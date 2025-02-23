@@ -1,5 +1,5 @@
 {
-    "debug": false,
+    "logLevel": "info",
     "functions": {
       "web": true,
       "music": true,

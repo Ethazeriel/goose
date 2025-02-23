@@ -53,7 +53,7 @@ export async function execute(interaction:ChatInputCommandInteraction) {
 
 
       default: {
-        log('error', ['OH NO SOMETHING\'S FUCKED']);
+        log.error('discord admin command hit default case, this shouldn\'t be possible');
         await interaction.followUp({ content:'Something broke. Please try again', ephemeral: true });
       }
 

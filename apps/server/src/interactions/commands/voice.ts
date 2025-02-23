@@ -48,7 +48,7 @@ export async function execute(interaction:MusicInteraction):Promise<void> {
           }
 
           default: {
-            log('error', ['OH NO SOMETHING\'S FUCKED']);
+            log.error('discord: hit voice command default case');
             await interaction.editReply({ content: 'Something broke. Please try again', ephemeral: true } as InteractionEditReplyOptions);
           }
         }

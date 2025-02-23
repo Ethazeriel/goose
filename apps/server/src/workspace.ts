@@ -2,7 +2,7 @@ import Player from './player.js';
 import { CommandInteraction, AttachmentBuilder, InteractionReplyOptions } from 'discord.js';
 import * as utils from '@ethgoose/utils';
 import * as db from './database.js';
-import { logDebug } from './logger.js';
+import { log } from './logger.js';
 
 export default class Workspace {
 
@@ -15,7 +15,7 @@ export default class Workspace {
     this.list = [];
     this.id = userid;
     this.expiry = setTimeout(() => {
-      logDebug(`Timeout reached; removing workspace for user ${this.id}`);
+      log.debug(`Timeout reached; removing workspace for user ${this.id}`);
       Workspace.clearWorkspace(this.id);
     }, 3600000).unref(); // hour timeout to clear workspaces that haven't been interacted with
   }

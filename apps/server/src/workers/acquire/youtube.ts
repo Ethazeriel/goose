@@ -1,12 +1,12 @@
 import fs from 'fs';
 import { fileURLToPath, URL } from 'url';
-import { logDebug, log } from '../../logger.js';
+import { log } from '../../logger.js';
 import ytdl from 'ytdl-core';
 import axios, { AxiosResponse } from 'axios';
 const { youtube }:GooseConfig = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../../../config/config.json', import.meta.url).toString()), 'utf-8'));
 
 async function fromId(id:string):Promise<TrackYoutubeSource> {
-  log('fetch', [`youtubeFromId: ${id}`]);
+  log.info(`youtubeFromId: ${id}`);
   const ytdlResult = await ytdl.getBasicInfo(id, { requestOptions: { family:4 } });
   const source:TrackYoutubeSource = {
     id: id,
@@ -23,7 +23,7 @@ async function fromId(id:string):Promise<TrackYoutubeSource> {
 }
 
 async function fromSearch(search:string):Promise<Array<TrackYoutubeSource>> {
-  log('fetch', [`youtubeFromSearch: ${search}`]);
+  log.info(`youtubeFromSearch: ${search}`);
   const youtubeResultAxios:AxiosResponse<YoutubeSearchResponse> = await axios({
     url: 'https://youtube.googleapis.com/youtube/v3/search?q=' + search + '&type=video&part=id%2Csnippet&fields%3Ditems%28id%2FvideoId%2Csnippet%28title%2Cthumbnails%29%29&maxResults=5&safeSearch=none&key=' + youtube.apiKey,
     method: 'get',
@@ -43,14 +43,14 @@ async function fromSearch(search:string):Promise<Array<TrackYoutubeSource>> {
   await Promise.allSettled(ytPromiseArray).then(promises => {
     for (const promise of promises) {
       if (promise.status === 'fulfilled') { ytArray.push(promise.value); }
-      if (promise.status === 'rejected') { log('error', ['ytdl promise rejected:', promise.reason]);}
+      if (promise.status === 'rejected') { log.error({ err:promise }, 'ytdl promise rejected:');}
     }
   });
   return ytArray;
 }
 
 async function fromPlaylist(id:string):Promise<Array<TrackYoutubeSource>> {
-  log('fetch', [`youtubeFromSearch: ${id}`]);
+  log.info(`youtubeFromSearch: ${id}`);
   let pageToken = undefined;
   const youtubeResults:Array<YoutubePlaylistItem> = [];
   do {
@@ -66,7 +66,7 @@ async function fromPlaylist(id:string):Promise<Array<TrackYoutubeSource>> {
     pageToken = youtubeResultAxios.data.nextPageToken;
     youtubeResults.push(...youtubeResultAxios.data.items);
   } while (pageToken);
-  logDebug(`Retrieved ${youtubeResults.length} tracks. Running ytdl...`);
+  log.trace(`Retrieved ${youtubeResults.length} tracks. Running ytdl...`);
   const ytPromiseArray:Array<Promise<TrackYoutubeSource>> = [];
   for (const item of youtubeResults) {
     const ytSource = fromId(item.contentDetails.videoId);
@@ -76,7 +76,7 @@ async function fromPlaylist(id:string):Promise<Array<TrackYoutubeSource>> {
   await Promise.allSettled(ytPromiseArray).then(promises => {
     for (const promise of promises) {
       if (promise.status === 'fulfilled') { ytArray.push(promise.value); }
-      if (promise.status === 'rejected') { log('error', ['ytdl promise rejected:', promise.reason]);}
+      if (promise.status === 'rejected') { log.error({ err:promise }, 'ytdl promise rejected:');}
     }
   });
   return ytArray;

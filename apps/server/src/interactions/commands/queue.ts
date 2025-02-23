@@ -1,8 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import Player from '../../player.js';
 import { chooseAudioSource } from '@ethgoose/utils';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { log, logDebug } from '../../logger.js';
+import { log } from '../../logger.js';
 import * as db from '../../database.js';
 import { seekTime as seekRegex } from '@ethgoose/utils/regex';
 import validator from 'validator';
@@ -253,7 +252,7 @@ export async function execute(interaction:ChatInputCommandInteraction & { messag
         }
 
         default: {
-          log('error', ['OH NO SOMETHING\'S FUCKED']);
+          log.error('OH NO SOMETHING\'S FUCKED');
           await interaction.editReply({ content: 'Something broke. Please try again' });
         }
 

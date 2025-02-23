@@ -176,12 +176,12 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         try {
           await interaction.followUp({ embeds: [listEmbed] } as InteractionReplyOptions);
         } catch (error:any) {
-          log('error', [error.stack]);
+          log.error(error.stack);
         }
         break;
       }
       default: {
-        log('error', ['OH NO SOMETHING\'S FUCKED']);
+        log.error('discord: hit playlist default case, what');
         await interaction.followUp({ content:'Something broke. Please try again', ephemeral: true });
       }
 

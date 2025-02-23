@@ -1,6 +1,6 @@
 import fs from 'fs';
 import { v2 } from '@google-cloud/translate';
-import { logDebug, log } from './logger.js';
+import { log } from './logger.js';
 import * as utils from '@ethgoose/utils';
 import { fileURLToPath, URL } from 'url';
 const { apiKey }:GooseConfig['translate'] = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../config/config.json', import.meta.url).toString()), 'utf-8')).translate;
@@ -45,7 +45,7 @@ export default class Translator {
     if ((now - Translator.#localetimestamp) > 86400000) {
       let locales:{code:string, name:string}[] = [];
       try { [locales] = await Translator.#GTranslate.getLanguages(); } catch (error:any) {
-        log('error', [`Translate error: ${error.message}`]);
+        log.error({ err:error }, `Translate error: ${error.message}`);
       }
       Translator.locales = locales;
       Translator.#localetimestamp = Date.now();
@@ -60,7 +60,7 @@ export default class Translator {
   static async getLang(text:string) { // takes string, returns object { code:'en', name:'English' }
     let detected:DetectResult;
     try { [detected] = await Translator.#GTranslate.detect(text); } catch (error:any) {
-      log('error', [`Translate error: ${error.message}`]);
+      log.error({ err:error }, `Translate error: ${error.message}`);
     }
     const [language] = Translator.locales.filter(element => element.code === detected.language);
     return language;
@@ -70,7 +70,7 @@ export default class Translator {
     await Translator.#refreshLocales();
     let translation = '';
     try { [translation] = await Translator.#GTranslate.translate(text, 'en'); } catch (error:any) {
-      log('error', [`Translate error: ${error.message}`]);
+      log.error({ err:error }, `Translate error: ${error.message}`);
     }
     // console.log(text, translation);
     return translation;
@@ -80,7 +80,7 @@ export default class Translator {
     await Translator.#refreshLocales();
     let translation = '';
     try { [translation] = await Translator.#GTranslate.translate(text, target); } catch (error:any) {
-      log('error', [`Translate error: ${error.message}`]);
+      log.error({ err:error }, `Translate error: ${error.message}`);
     }
     // console.log(text, translation);
     return translation;
@@ -116,7 +116,7 @@ export default class Translator {
         const [result] = await Translator.#GTranslate.translate(messageContent, locale);
         translations[locale] = result || 'translate failed';
       } catch (error:any) {
-        log('error', [`Translate error: ${error.message}`]);
+        log.error({ err:error }, `Translate error: ${error.message}`);
       }
     }
     // console.log(translations);
@@ -132,13 +132,13 @@ export default class Translator {
   }
 
   changeLocale(user:string, locale:string) {
-    logDebug(`Updating locale for ${user} to ${locale}`);
+    log.debug(`Updating locale for ${user} to ${locale}`);
     this.subscribers[user].locale = locale;
     this.updateTargets();
   }
 
   addSubscriber(user:string, locale:string, interaction:CommandInteraction | ButtonInteraction) {
-    logDebug(`adding sub ${user} with ${locale}`);
+    log.debug(`adding sub ${user} with ${locale}`);
     this.subscribers[user] = {
       locale: locale,
       id: user,
@@ -158,7 +158,7 @@ export default class Translator {
     if (Object.keys(this.subscribers).length) {
       this.updateTargets();
     } else {
-      logDebug(`Removing translate organizer with id ${this.id}`);
+      log.debug(`Removing translate organizer with id ${this.id}`);
       delete Translator.#organizers[this.id];
     }
   }

@@ -1,6 +1,6 @@
 import { embedPage } from '@ethgoose/utils/regex';
 import Player from '../../player.js';
-import { logDebug } from '../../logger.js';
+import { log } from '../../logger.js';
 import { ButtonInteraction, InteractionDeferUpdateOptions, InteractionEditReplyOptions } from 'discord.js';
 
 export const name = 'queue';
@@ -77,7 +77,7 @@ export async function execute(interaction:ButtonInteraction, which:string) {
           break;
         }
 
-        default: logDebug(`queue buttons—bad case: ${which}`); return;
+        default: log.debug(`queue buttons—bad case: ${which}`); return;
       }
     } else { player.decommission(interaction, 'queue', await player.queueEmbed(undefined, undefined, false), 'Queue is empty.'); }
   } else { interaction.editReply({ embeds: [{ color: 0xfc1303, title: message, thumbnail: { url: 'attachment://art.jpg' } }], components: [] }); }

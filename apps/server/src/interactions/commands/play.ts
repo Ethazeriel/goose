@@ -1,7 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import Player from '../../player.js';
 import * as utils from '../../utils.js';
-import { log, logDebug } from '../../logger.js';
+import { log } from '../../logger.js';
 import * as database from '../../database.js';
 import fetch from '../../acquire.js';
 import { youtubePattern, spotifyPattern, sanitize, sanitizePlaylists } from '@ethgoose/utils/regex';
@@ -52,7 +52,7 @@ export async function execute(interaction:ChatInputCommandInteraction) {
     return;
   }
   if (when !== 'last' && when !== 'next' && when !== 'now') { // should we be checking for other bad data?
-    log('error', [`/play—bad when ${when}. user ${interaction.user.username}#${interaction.user.discriminator} with what ${what} and search ${search}`]);
+    log.warn(`/play—bad when ${when}. user ${interaction.user.username}#${interaction.user.discriminator} with what ${what} and search ${search}`);
     interaction.editReply({ content: 'OH NO SOMETHING\'S FUCKED' });
     return;
   }
@@ -91,11 +91,11 @@ export async function execute(interaction:ChatInputCommandInteraction) {
   }
 
   let tracks = await getTracks.catch(async (error:Error) => {
-    log('error', [`play—${internal ? 'db' : 'fetch'} error, ${error}`]);
+    log.error({ err:error }, `play—${internal ? 'db' : 'fetch'} error`);
     await interaction.editReply({ content: (internal) ? 'OH NO SOMETHING\'S FUCKED' : (error.message) ? error.message : 'either that\'s a private playlist or SOMETHING\'S FUCKED' });
     if (!internal) { // only external resources exist as pending tracks
       const removed = player.removebyUUID(UUID);
-      if (!removed.length) { logDebug(`failed to find/ UUID ${UUID} already removed`); }
+      if (!removed.length) { log.warn(`failed to find/ UUID ${UUID} already removed`); }
     }
     return undefined;
   });
@@ -103,11 +103,11 @@ export async function execute(interaction:ChatInputCommandInteraction) {
 
   if (tracks.length === 0) {
     if (internal) {
-      logDebug('error', [`No playlist exists by name '${search}'`]);
+      log.warn(`No playlist exists by name '${search}'`);
       await interaction.editReply({ content: `No internal playlist exists by name '${search}'. See \`/playlist list\` or \`/playlist help\`.` });
       return;
     }
-    logDebug('error', [`No result for search '${search}'`]);
+    log.warn(`No result for search '${search}'`);
     await interaction.editReply({ content: `No result for '${search}'. Either be more specific or directly link a spotify/youtube resource.` });
     return;
   }
@@ -127,7 +127,7 @@ export async function execute(interaction:ChatInputCommandInteraction) {
   if (!internal) {
     const success = player.replacePlaceholder(tracks, UUID);
     if (!success) { // to do: remove this if we decide that pending tracks should not be removeable
-      logDebug(`failed to replace UUID ${UUID}, probably deleted`);
+      log.warn(`failed to replace UUID ${UUID}, probably deleted`);
       await interaction.editReply({ content:'either you/someone removed your pending track before it resolved or SOMETHING\'S FUCKED' });
       return;
     }
@@ -147,14 +147,14 @@ export async function execute(interaction:ChatInputCommandInteraction) {
       } else {
         const nextUp = player.getNext();
         if (nextUp && nextUp.goose.UUID === UUID) { // typical
-          logDebug('pending now, typical');
+          log.debug('pending now, typical');
           player.next();
         } else if (current && current.goose.UUID === UUID) { /* replacePending handled this */
           // empty or ended queue or player status idle->next before replace; anything that could make this true should be calling play, have
-          logDebug('pending now, queue empty/ended or something\'s wrong'); // skipped pending and be idle; and replace will have called play
+          log.debug('pending now, queue empty/ended or something\'s wrong'); // skipped pending and be idle; and replace will have called play
         } else {
           moved = true;
-          logDebug(`pending now, UUID ${UUID} not next or current`);
+          log.debug(`pending now, UUID ${UUID} not next or current`);
           await interaction.followUp({ content: 'you/someone rearranged the queue. use `/queue jump` if you still want them to play now', ephemeral: true });
         }
       }

@@ -4,7 +4,7 @@ import spotifyAcquire from '../acquire/spotify.js';
 
 
 export async function userPlaylists(token:string, id:string):Promise<Array<SpotifyPlaylist>> {
-  log('fetch', [`spotifyUserPlaylists: ${id}`]);
+  log.info(`spotifyUserPlaylists: ${id}`);
   const playlistList = [];
   const limit = 50;
   let offset = 0;
@@ -18,7 +18,7 @@ export async function userPlaylists(token:string, id:string):Promise<Array<Spoti
         Authorization: `Bearer ${token}`,
       },
     }).catch(error => {
-      log('error', ['Spotify: ', error.stack, error?.data]);
+      log.error(error);
       return;
     });
     const spotifyResult = spotifyResultAxios!.data;

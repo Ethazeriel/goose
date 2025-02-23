@@ -1,6 +1,6 @@
 import * as db from './database.js';
 import axios, { AxiosResponse } from 'axios';
-import { logDebug, log } from './logger.js';
+import { log } from './logger.js';
 import fs from 'fs';
 import { fileURLToPath, URL } from 'url';
 const { discord, spotify, mongo, napster }:GooseConfig = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../config/config.json', import.meta.url).toString()), 'utf-8'));
@@ -50,13 +50,13 @@ export async function flow(type:'discord' | 'spotify' | 'napster', code:string, 
     data: tokenconfig.data,
     timeout: 10000,
   }).catch(error => {
-    log('error', ['Oauth2: ', error.stack, error?.data]);
+    log.error(error);
     return;
   });
 
   if (AxToken?.data) {
     const token = AxToken.data;
-    logDebug('successful auth - getting user data');
+    log.trace('successful auth - getting user data');
 
     let userconfig;
     switch (type) {
@@ -73,13 +73,13 @@ export async function flow(type:'discord' | 'spotify' | 'napster', code:string, 
         Authorization: `Bearer ${token.access_token}`,
       },
     }).catch(error => {
-      log('error', ['Oauth2: ', error.stack, error?.data]);
+      log.error(error);
       return;
     });
 
     if (AxUser?.data) {
       const user = AxUser.data;
-      logDebug('got user data, saving to db');
+      log.trace('got user data, saving to db');
 
       switch (type) {
         case 'discord': {
@@ -117,7 +117,7 @@ export async function getToken(user:object, type:'discord' | 'spotify' | 'napste
       const token = await updateToken(tokenuser, type);
       return token;
     }
-  } catch (error:any) { log('error', ['oauth error:', error.stack]); }
+  } catch (error:any) { log.error(error); }
 }
 
 async function updateToken(user:User, type:'discord' | 'spotify' | 'napster' | 'lastfm'):Promise<string | undefined> {
@@ -177,7 +177,7 @@ async function updateToken(user:User, type:'discord' | 'spotify' | 'napster' | '
         data: tokenconfig.data,
         timeout: 10000,
       }).catch(error => {
-        log('error', ['Oauth2: ', error.stack, error?.data]);
+        log.error(error);
         return;
       });
       if (newtoken?.data) {
@@ -192,11 +192,11 @@ async function updateToken(user:User, type:'discord' | 'spotify' | 'napster' | '
         const userdb = dab.collection<User>(usercol);
         const target = `tokens.${type}`;
         await userdb.updateOne({ 'discord.id': user.discord.id }, { $set:{ [target]:token } } as UpdateFilter<User>);
-        log('database', [`Renewed Oauth2 token type ${type} for ${chalk.blue(user.discord.id)}: expires ${chalk.green(token.expiry)}`]);
+        log.info(`Renewed Oauth2 token type ${type} for ${chalk.blue(user.discord.id)}: expires ${chalk.green(token.expiry)}`);
         return token.access;
       }
     } else {
-      logDebug('token still valid - skipping renewal');
+      log.trace('token still valid - skipping renewal');
       return user.tokens[type]!.access;
     }
   }
@@ -214,9 +214,9 @@ async function saveTokenDiscord(authtoken:AccessTokenResponse, userdata:{ expire
       scope:authtoken.scope,
     };
     await userdb.updateOne({ 'discord.id': userdata.user.id }, { $set:{ 'tokens.discord':token }, $addToSet:{ webClientId:webClientId } });
-    log('database', [`Saving Oauth2 token for ${chalk.blue(userdata.user.id)}: expires ${chalk.green(token.expiry)}`]);
+    log.info(`Saving Oauth2 token for ${chalk.blue(userdata.user.id)}: expires ${chalk.green(token.expiry)}`);
   } catch (error:any) {
-    log('error', ['database error:', error.stack]);
+    log.error(error);
   }
 }
 
@@ -233,9 +233,9 @@ async function saveTokenSpotify(authtoken:AccessTokenResponse, webClientId:strin
       scope:authtoken.scope,
     };
     await userdb.updateOne({ webClientId: webClientId }, { $set:{ 'tokens.spotify':token } });
-    log('database', [`Saving spotify Oauth2 token: expires ${chalk.green(token.expiry)}`]);
+    log.info(`Saving spotify Oauth2 token: expires ${chalk.green(token.expiry)}`);
   } catch (error:any) {
-    log('error', ['database error:', error.stack]);
+    log.error(error);
   }
 }
 
@@ -250,9 +250,9 @@ async function saveTokenNapster(authtoken:AccessTokenResponse, webClientId:strin
       scope:authtoken.scope || 'no such thing',
     };
     await userdb.updateOne({ webClientId: webClientId }, { $set:{ 'tokens.napster':token } });
-    log('database', [`Saving napster Oauth2 token: expires ${chalk.green(token.expiry)}`]);
+    log.info(`Saving napster Oauth2 token: expires ${chalk.green(token.expiry)}`);
   } catch (error:any) {
-    log('error', ['database error:', error.stack]);
+    log.error(error);
   }
 }
 
@@ -269,9 +269,9 @@ async function updateSpotifyUser(target:object, spotifyInfo:SpotifyApi.CurrentUs
   try {
     const userdb = dab.collection<User>(usercol);
     await userdb.updateOne(target, { $set: { spotify:dbspotify } } as UpdateFilter<User>);
-    log('database', [`Updating Spotify userdata for ${chalk.green(dbspotify.username)}`]);
+    log.info(`Updating Spotify userdata for ${chalk.green(dbspotify.username)}`);
   } catch (error:any) {
-    log('error', ['database error:', error.stack]);
+    log.error(error);
   }
 }
 
@@ -285,8 +285,8 @@ async function updateNapsterUser(target:object, napsterInfo:any):Promise<void> {
   try {
     const userdb = dab.collection<User>(usercol);
     await userdb.updateOne(target, { $set: { napster:dbnapster } });
-    log('database', [`Updating Napster userdata for ${chalk.green(dbnapster.username)}`]);
+    log.info(`Updating Napster userdata for ${chalk.green(dbnapster.username)}`);
   } catch (error:any) {
-    log('error', ['database error:', error.stack]);
+    log.error(error);
   }
 }

@@ -1,5 +1,5 @@
 import { Worker } from 'worker_threads';
-import { log, logDebug } from './logger.js';
+import { log } from './logger.js';
 import Player from './player.js';
 import fetch from './acquire.js';
 import { toggleSlowMode } from './acquire.js';
@@ -9,12 +9,12 @@ import { fileURLToPath, URL } from 'url';
 
 let worker = new Worker(fileURLToPath(new URL('./workers/webserver.js', import.meta.url).toString()), { workerData:{ name:'WebServer' } });
 worker.on('exit', code => {
-  logDebug(`Worker exited with code ${code}.`);
+  log.fatal(`Worker exited with code ${code}.`);
   worker = new Worker(fileURLToPath(new URL('./workers/webserver.js', import.meta.url).toString()), { workerData:{ name:'WebServer' } });
 }); // if it exits just spawn a new one because that's good error handling, yes
 
 worker.on('error', code => {
-  logDebug(`Worker threw error ${code.message}.`, '\n', code.stack);
+  log.error({ err:code }, `Worker threw error ${code.message}.`);
   worker = new Worker(fileURLToPath(new URL('./workers/webserver.js', import.meta.url).toString()), { workerData:{ name:'WebServer' } });
 }); // ehh fuck it, probably better than just crashing I guess
 
@@ -27,7 +27,7 @@ worker.on('message', async (message:WebWorkerMessage<ActionType>) => {
         switch (message.action) {
           case 'get': {
             const status = player.getStatus();
-            if (!status) { logDebug('webserver parent and status nullish'); }
+            if (!status) { log.debug('webserver parent and status nullish'); }
             worker.postMessage({ id:message.id, status:status });
             break;
           }
@@ -120,7 +120,7 @@ worker.on('message', async (message:WebWorkerMessage<ActionType>) => {
 
           case 'pendingIndex': {
             if (!(message.parameter)) {
-              logDebug(`webparent queue—parameter nullish; was [${message.parameter}]`);
+              log.warn(`webparent queue—parameter nullish; was [${message.parameter}]`);
               worker.postMessage({ id:message.id, error: `either you've altered your client or we've fucked up; can't queue ${message.parameter}` });
               return;
             }
@@ -137,15 +137,15 @@ worker.on('message', async (message:WebWorkerMessage<ActionType>) => {
             try {
               tracks = await fetch(query);
               if (tracks.length == 0) {
-                logDebug(`webparent queue—[${query}] resulted in 0 tracks; message was [${message.parameter}]`);
+                log.warn(`webparent queue—[${query}] resulted in 0 tracks; message was [${message.parameter}]`);
                 worker.postMessage({ id:message.id, error: `either ${query}\nis an empty playlist/ album, or we've fucked up` });
                 return;
               }
             } catch (error:any) {
-              log('error', [`webparent queue—fetch error, ${error.stack}`]);
+              log.error({ err:error }, 'webparent queue—fetch error');
               worker.postMessage({ id:message.id, error: `check that ${query} is't a private playlist` });
               const removed = player.removebyUUID(UUID);
-              if (!removed.length) { logDebug(`webparent queue—failed to find/ UUID ${UUID} already removed`); }
+              if (!removed.length) { log.warn(`webparent queue—failed to find/ UUID ${UUID} already removed`); }
               return;
             }
 
@@ -154,11 +154,11 @@ worker.on('message', async (message:WebWorkerMessage<ActionType>) => {
             if (index < 0) {
               flag = true; index = 0;
             } else if (length < index) { flag = true; /* handled by splice */ }
-            if (flag) { logDebug(`webparent queue—${(index < 0) ? `index negative ${index}` : `index ${index} > ${length}`}. queueing anyway`); }
+            if (flag) { log.info(`webparent queue—${(index < 0) ? `index negative ${index}` : `index ${index} > ${length}`}. queueing anyway`); }
 
             const success = player.replacePlaceholder(tracks, UUID);
             if (!success) {
-              logDebug(`webparent queue—failed to replace UUID ${UUID}, probably deleted`);
+              log.warn(`webparent queue—failed to replace UUID ${UUID}, probably deleted`);
               return;
             }
 
@@ -172,7 +172,7 @@ worker.on('message', async (message:WebWorkerMessage<ActionType>) => {
 
           case 'failedIndex': {
             if (!(message.parameter)) {
-              logDebug(`webparent queue—parameter nullish; was [${message.parameter}]`);
+              log.warn(`webparent queue—parameter nullish; was [${message.parameter}]`);
               worker.postMessage({ id:message.id, error: `either you've altered your client or we've fucked up; can't queue ${message.parameter}` });
               return;
             }
@@ -184,19 +184,19 @@ worker.on('message', async (message:WebWorkerMessage<ActionType>) => {
             try {
               tracks = await fetch(query);
               if (tracks.length == 0) {
-                logDebug(`webparent queue—[${query}] resulted in 0 tracks; message was [${message.parameter}]`);
+                log.warn(`webparent queue—[${query}] resulted in 0 tracks; message was [${message.parameter}]`);
                 worker.postMessage({ id:message.id, error: `either ${query}\nis an empty playlist/ album, or we've fucked up` });
                 return;
               }
             } catch (error:any) {
-              log('error', [`webparent queue—fetch error, ${error.stack}`]);
+              log.error({ err:error }, 'webparent queue—fetch error');
               worker.postMessage({ id:message.id, error: `check that ${query} is't a private playlist` });
               return;
             }
 
             const success = player.replacePlaceholder(tracks, UUID);
             if (!success) {
-              logDebug(`webparent queue—failed to replace UUID ${UUID}, probably deleted`);
+              log.warn(`webparent queue—failed to replace UUID ${UUID}, probably deleted`);
               return;
             }
 
@@ -221,17 +221,17 @@ worker.on('message', async (message:WebWorkerMessage<ActionType>) => {
                     player.webSync('queue');
                     const status = player.getStatus();
                     worker.postMessage({ id:message.id, status:status });
-                  } else { logDebug(`move—probable user error ${failure}`); worker.postMessage({ id:message.id, error:failure }); }
+                  } else { log.error(`move—probable user error ${failure}`); worker.postMessage({ id:message.id, error:failure }); }
                 } else {
-                  logDebug(`move—${isNaN(from) ? `from is NaN, contains [${from}]` : isNaN(to) ? `to is NaN, contains [${to}]` : `UUID is not a string, contains [${UUID}]`}`);
+                  log.warn(`move—${isNaN(from) ? `from is NaN, contains [${from}]` : isNaN(to) ? `to is NaN, contains [${to}]` : `UUID is not a string, contains [${UUID}]`}`);
                   worker.postMessage({ id:message.id, error:'either you\'ve altered your client or we\'ve fucked up' });
                 }
               } else {
-                logDebug(`move—${`parameter is nullish, contains [${message.parameter}]` }`);
+                log.warn(`move—${`parameter is nullish, contains [${message.parameter}]` }`);
                 worker.postMessage({ id:message.id, error:'either you\'ve altered your client or we\'ve fucked up' });
               }
             } else {
-              logDebug('move—web client, length <= 1');
+              log.warn('move—web client, length <= 1');
               worker.postMessage({ id:message.id, error:'probably your auto-updates broke; try refreshing' });
             }
             break;
@@ -270,7 +270,7 @@ worker.on('message', async (message:WebWorkerMessage<ActionType>) => {
           }
 
           default:
-            logDebug('Hit webserver player message default case,', JSON.stringify(message, null, 2));
+            log.fatal('Hit webserver player message default case,', JSON.stringify(message, null, 2));
             worker.postMessage({ id:message.id, error:'Invalid player action' });
             break;
         }
@@ -279,7 +279,7 @@ worker.on('message', async (message:WebWorkerMessage<ActionType>) => {
     }
 
     default:
-      logDebug('Hit webserver worker default case,', JSON.stringify(message, null, 2));
+      log.fatal('Hit webserver worker default case,', JSON.stringify(message, null, 2));
       worker.postMessage({ id:message.id, error:'Invalid server action' });
       break;
   }

@@ -1,6 +1,6 @@
 import { Worker } from 'worker_threads';
 import crypto from 'crypto';
-import { log, logDebug } from './logger.js';
+import { log } from './logger.js';
 import { fileURLToPath, URL } from 'url';
 import Player from './player.js';
 
@@ -12,12 +12,12 @@ export function toggleSlowMode() {
 
 let worker = new Worker(fileURLToPath(new URL('./workers/acquire.js', import.meta.url).toString()), { workerData:{ name:'Acquire' } });
 worker.on('exit', code => {
-  logDebug(`Worker exited with code ${code}.`);
+  log.debug(`Worker exited with code ${code}.`);
   worker = new Worker(fileURLToPath(new URL('./workers/acquire.js', import.meta.url).toString()), { workerData:{ name:'Acquire' } });
 }); // if it exits just spawn a new one because that's good error handling, yes
 
 worker.on('error', code => {
-  logDebug(`Worker threw error ${code.message}.`, '\n', code.stack);
+  log.error({ err:code }, `Worker threw error ${code.message}.`);
   worker = new Worker(fileURLToPath(new URL('./workers/acquire.js', import.meta.url).toString()), { workerData:{ name:'Acquire' } });
 }); // ehh fuck it, probably better than just crashing I guess
 type fetchPromiseResult = { id:string, tracks?:Array<Track | string>, error?:string };
@@ -46,10 +46,10 @@ export default async function fetch(search:string, id = crypto.randomBytes(5).to
         worker.removeListener('message', action);
         worker.removeListener('error', error);
       }
-      logDebug(`acquire worker, listener ${id} called`);
+      log.debug(`acquire worker, listener ${id} called`);
     };
     const error = (err:Error) => {
-      log('error', ['worker error', JSON.stringify(err, null, 2)]);
+      log.error({ err:err }, 'acquire worker error');
       reject(err);
       worker.removeListener('message', action);
       worker.removeListener('error', error);

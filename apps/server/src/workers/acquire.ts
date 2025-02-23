@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import * as db from '../database.js';
-import { logDebug, log } from '../logger.js';
+import { log as logBase } from '../logger.js';
 import { youtubePattern, spotifyPattern, sanitize, youtubePlaylistPattern, napsterPattern } from '@ethgoose/utils/regex';
 import { parentPort } from 'worker_threads';
 import youtube from './acquire/youtube.js';
@@ -8,6 +8,8 @@ import spotify from './acquire/spotify.js';
 import napster from './acquire/napster.js';
 import subsonic from './acquire/subsonic.js';
 import { trackVersion } from '../migrations.js';
+
+const log = logBase.child({ module: 'fetch' });
 
 parentPort!.on('message', async data => {
   if (data.action === 'search') {
@@ -18,12 +20,12 @@ parentPort!.on('message', async data => {
       parentPort!.postMessage({ tracks:tracks, id:data.id });
     }
   } else if (data.action === 'exit') {
-    log('info', ['Worker exiting']);
+    log.fatal('Worker exiting');
     await db.closeDB();
     process.exit();
   }
 });
-logDebug('Acquire2 worker spawned.');
+log.debug('Acquire2 worker spawned.');
 
 async function fetchTracks(search:string):Promise<Array<Track | string> | string> {
   // Expectations:
@@ -262,7 +264,7 @@ async function fetchTracks(search:string):Promise<Array<Track | string> | string
     for (const promise of promises) {
       if (promise.status === 'fulfilled') { finishedArray.push(promise.value); }
       if (promise.status === 'rejected') {
-        log('error', ['track assembly promise rejected:', promise.reason]);
+        log.error({ err:promise }, 'track assembly promise rejected:');
         if (promise.reason) {
           finishedArray.push(promise.reason);
         }
@@ -277,7 +279,7 @@ async function fetchTracks(search:string):Promise<Array<Track | string> | string
 }
 
 async function checkTrack(track:TrackSource, type:'spotify' | 'napster'):Promise<Track | null> {
-  logDebug('checking track ', track.name);
+  log.debug('checking track ', track.name);
   // takes a track source, and checks if we already have it
   // if we do, updates the existing track and returns it
   // if not, returns null
@@ -303,7 +305,7 @@ async function checkTrack(track:TrackSource, type:'spotify' | 'napster'):Promise
 }
 
 async function checkPlayableTrack(track:TrackSource, type:'subsonic'):Promise<Track | null> {
-  logDebug('checking track ', track.name);
+  log.debug('checking track ', track.name);
   // variant of checkTrack specifically for sources that can be played directly
   const target = `audioSource.${type}.id`;
   const track1 = await db.getTrack({ [target]: track.id });
@@ -340,18 +342,18 @@ async function youtubeSource(search:string):Promise<Array<TrackYoutubeSource | T
   const match = search.match(youtubePattern);
   const track = await db.getTrack({ 'audioSource.youtube.0.id': match![2] });
   if (track) {
-    log('fetch', [`[0] have '${ track.goose.track.name }'`]);
+    log.info(`[0] have '${ track.goose.track.name }'`);
     return (Array(track));
   }
   // we don't have this yet - go talk to youtube
-  log('fetch', [`[0] lack '${ match![2] }'`]);
+  log.info(`[0] lack '${ match![2] }'`);
   const source = await youtube.fromId(match![2]).catch((e:PromiseRejectedResult) => { return e.reason;});
   if (typeof source === 'string') { return Array(source); }
   // let's see if spotify knows anything about this track
   // use ContentID info as search parameter, don't perform search if no ContentID match
   const find = source.contentID ? `${source.contentID.name} ${source.contentID.artist}` : null;
   const auth = find ? await spotify.getCreds() : null;
-  const newTrack = find ? await spotify.fromText(auth!, find).catch(err => {logDebug(err.message);}) : null;
+  const newTrack = find ? await spotify.fromText(auth!, find).catch(err => {log.error(err);}) : null;
   if (newTrack) {
     const dbTrack = await checkTrack(newTrack, 'spotify');
     if (dbTrack) {
@@ -399,15 +401,15 @@ async function youtubePlaylistSource(search:string):Promise<Array<TrackYoutubeSo
     ytPromiseArray.push((async () => {
       const track = await db.getTrack({ 'youtube.id': source.id });
       if (track) {
-        log('fetch', [`[0] have '${ track.goose.track.name }'`]);
+        log.info(`[0] have '${ track.goose.track.name }'`);
         return (track);
       }
       // we don't have this yet - go talk to youtube
-      log('fetch', [`[0] lack '${ source.id }'`]);
+      log.info(`[0] lack '${ source.id }'`);
       // let's see if spotify knows anything about this track
       // use ContentID info as search parameter, don't perform search if no ContentID match
       const find = source.contentID ? `${source.contentID.name} ${source.contentID.artist}` : null;
-      const newTrack = find ? await spotify.fromText(auth, find).catch(err => {logDebug(err.message);}) : null;
+      const newTrack = find ? await spotify.fromText(auth, find).catch(err => {log.error(err);}) : null;
       if (newTrack) {
         const dbTrack = await checkTrack(newTrack, 'spotify');
         if (dbTrack) {
@@ -449,7 +451,7 @@ async function youtubePlaylistSource(search:string):Promise<Array<TrackYoutubeSo
   await Promise.allSettled(ytPromiseArray).then(promises => {
     for (const promise of promises) {
       if (promise.status === 'fulfilled') { ytArray.push(promise.value); }
-      if (promise.status === 'rejected') { log('error', ['promise rejected in youtubePlaylistSource', JSON.stringify(promise, null, 2)]);}
+      if (promise.status === 'rejected') { log.error({ err:promise }, 'promise rejected in youtubePlaylistSource');}
     }
   });
   return ytArray;
@@ -462,7 +464,7 @@ async function spotifySource(search:string):Promise<Array<TrackSource | Track> |
     case 'track': {
       const track = await db.getTrack({ 'spotify.id': match![2] });
       if (track) {
-        log('fetch', [`[0] have '${ track.goose.track.name }'`]);
+        log.info(`[0] have '${ track.goose.track.name }'`);
         return (Array(track));
       }
       // this is a new id, so we need to go talk to spotify
@@ -481,10 +483,10 @@ async function spotifySource(search:string):Promise<Array<TrackSource | Track> |
         const dbTrack = await checkTrack(source, 'spotify');
         if (dbTrack) {
           readyTracks.push(dbTrack);
-          log('fetch', [`[${i}] have '${ dbTrack.goose.track.name }'`]);
+          log.info(`[${i}] have '${ dbTrack.goose.track.name }'`);
         } else {
           readyTracks.push(source);
-          log('fetch', [`[${i}] lack '${ source.name }'`]);
+          log.info(`[${i}] lack '${ source.name }'`);
         }
       }
       return readyTracks;
@@ -498,10 +500,10 @@ async function spotifySource(search:string):Promise<Array<TrackSource | Track> |
         const dbTrack = await checkTrack(source, 'spotify');
         if (dbTrack) {
           readyTracks.push(dbTrack);
-          log('fetch', [`[${i}] have '${ dbTrack.goose.track.name }'`]);
+          log.info(`[${i}] have '${ dbTrack.goose.track.name }'`);
         } else {
           readyTracks.push(source);
-          log('fetch', [`[${i}] lack '${ source.name }'`]);
+          log.info(`[${i}] lack '${ source.name }'`);
         }
       }
       return readyTracks;
@@ -517,7 +519,7 @@ async function subsonicSource(search:string):Promise<Array<TrackSource | Track> 
     case 'track': {
       const track = await db.getTrack({ 'audioSource.subsonic.id': match![2] });
       if (track) {
-        log('fetch', [`[0] have '${ track.goose.track.name }'`]);
+        log.info(`[0] have '${ track.goose.track.name }'`);
         return (Array(track));
       }
       // not in the db yet, go get it from subsonic
@@ -534,10 +536,10 @@ async function subsonicSource(search:string):Promise<Array<TrackSource | Track> 
         const dbTrack = await checkPlayableTrack(source, 'subsonic');
         if (dbTrack) {
           readyTracks.push(dbTrack);
-          log('fetch', [`[${i}] have '${ dbTrack.goose.track.name }'`]);
+          log.info(`[${i}] have '${ dbTrack.goose.track.name }'`);
         } else {
           readyTracks.push(source);
-          log('fetch', [`[${i}] lack '${ source.name }'`]);
+          log.info(`[${i}] lack '${ source.name }'`);
         }
       }
       return readyTracks;
@@ -550,10 +552,10 @@ async function subsonicSource(search:string):Promise<Array<TrackSource | Track> 
         const dbTrack = await checkPlayableTrack(source, 'subsonic');
         if (dbTrack) {
           readyTracks.push(dbTrack);
-          log('fetch', [`[${i}] have '${ dbTrack.goose.track.name }'`]);
+          log.info(`[${i}] have '${ dbTrack.goose.track.name }'`);
         } else {
           readyTracks.push(source);
-          log('fetch', [`[${i}] lack '${ source.name }'`]);
+          log.info(`[${i}] lack '${ source.name }'`);
         }
       }
       return readyTracks;
@@ -566,7 +568,7 @@ async function textSource(search:string):Promise<Array<string | TrackSource | Tr
   search = search.toLowerCase();
   const track = await db.getTrack({ keys: search });
   if (track) {
-    log('fetch', [`[0] have '${ track.goose.track.name }'`]);
+    log.info(`[0] have '${ track.goose.track.name }'`);
     return (Array(track));
   }
   // this is a new search
@@ -575,12 +577,12 @@ async function textSource(search:string):Promise<Array<string | TrackSource | Tr
   if (newTrack) {
     const dbTrack = await checkTrack(newTrack, 'spotify');
     if (dbTrack) {
-      log('fetch', [`[0] have '${ dbTrack.goose.track.name }'`]);
+      log.info(`[0] have '${ dbTrack.goose.track.name }'`);
       // we didn't have the key, but had the track by name/artist or id match
       db.addKey({ 'goose.id':dbTrack.goose.id }, search);
       return Array(dbTrack);
     }
-    log('fetch', [`[0] lack '${ newTrack.name }'`]);
+    log.info(`[0] lack '${ newTrack.name }'`);
     return Array(newTrack);
   } else {
     // track wasn't on spotify, go to youtube
@@ -589,12 +591,12 @@ async function textSource(search:string):Promise<Array<string | TrackSource | Tr
     if (typeof youtubeTrack === 'string') { return Array(youtubeTrack); }
     const dbTrack = await db.getTrack({ 'youtube.id': youtubeTrack[0].id });
     if (dbTrack) {
-      log('fetch', [`[0] have '${ dbTrack.goose.track.name }'`]);
+      log.info(`[0] have '${ dbTrack.goose.track.name }'`);
       // we didn't have the key, but had the track by name/artist or id match
       db.addKey({ 'goose.id':dbTrack.goose.id }, search);
       return Array(dbTrack);
     }
-    log('fetch', [`[0] lack '${ youtubeTrack[0].name }'`]);
+    log.info(`[0] lack '${ youtubeTrack[0].name }'`);
     return Array(youtubeTrack);
   }
 }
@@ -606,7 +608,7 @@ async function napsterSource(search:string):Promise<Array<TrackSource | Track> |
     case 'track': {
       const track = await db.getTrack({ 'napster.id': match![3] });
       if (track) {
-        log('fetch', [`[0] have '${ track.goose.track.name }'`]);
+        log.info(`[0] have '${ track.goose.track.name }'`);
         return (Array(track));
       }
       // this is a new id, so we need to go talk to napster
@@ -623,10 +625,10 @@ async function napsterSource(search:string):Promise<Array<TrackSource | Track> |
         const dbTrack = await checkTrack(source, 'napster');
         if (dbTrack) {
           readyTracks.push(dbTrack);
-          log('fetch', [`[${i}] have '${ dbTrack.goose.track.name }'`]);
+          log.info(`[${i}] have '${ dbTrack.goose.track.name }'`);
         } else {
           readyTracks.push(source);
-          log('fetch', [`[${i}] lack '${ source.name }'`]);
+          log.info(`[${i}] lack '${ source.name }'`);
         }
       }
       return readyTracks;
@@ -639,10 +641,10 @@ async function napsterSource(search:string):Promise<Array<TrackSource | Track> |
         const dbTrack = await checkTrack(source, 'napster');
         if (dbTrack) {
           readyTracks.push(dbTrack);
-          log('fetch', [`[${i}] have '${ dbTrack.goose.track.name }'`]);
+          log.info(`[${i}] have '${ dbTrack.goose.track.name }'`);
         } else {
           readyTracks.push(source);
-          log('fetch', [`[${i}] lack '${ source.name }'`]);
+          log.info(`[${i}] lack '${ source.name }'`);
         }
       }
       return readyTracks;

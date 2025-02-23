@@ -4,7 +4,7 @@ import { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayer, 
 import crypto from 'crypto';
 import { ButtonInteraction, CommandInteraction, BaseInteraction, GuildMember, AttachmentBuilder, VoiceChannel, Client, VoiceState, InteractionUpdateOptions, InteractionReplyOptions, Message, APIEmbed } from 'discord.js';
 import * as db from './database.js';
-import { log, logDebug } from './logger.js';
+import { log } from './logger.js';
 import { fileURLToPath, URL } from 'url';
 const { youtube, functions }:GooseConfig = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../config/config.json', import.meta.url).toString()), 'utf-8'));
 const useragent = youtube.useragent;
@@ -16,6 +16,7 @@ import subsonic from './workers/acquire/subsonic.js';
 
 // type GetPlayer = Promise<{ player?: Player; message?: string; }>;
 type JoinableVoiceUser = VoiceUser & { adapterCreator:DiscordGatewayAdapterCreator; };
+const plog = log.child({ module: 'player' });
 
 export default class Player {
   // type definitions
@@ -61,9 +62,9 @@ export default class Player {
     this.#listeners = new Set();
 
     this.#audioPlayer = createAudioPlayer();
-    this.#audioPlayer.on('error', error => { log('error', [error.stack! ]); });
+    this.#audioPlayer.on('error', error => { plog.error(error); });
     const audioStateChange = async (oldState:AudioPlayerState, newState:AudioPlayerState) => {
-      logDebug(`Player transitioned from ${oldState.status} to ${newState.status}`);
+      log.trace(`Player transitioned from ${oldState.status} to ${newState.status}`);
 
       if (newState.status == AudioPlayerStatus.Playing) {
         const diff = (this.#queue.tracks[this.#queue.playhead].status.pause) ? (this.#queue.tracks[this.#queue.playhead].status.pause! - this.#queue.tracks[this.#queue.playhead].status.start!) : 0;
@@ -80,7 +81,7 @@ export default class Player {
           const percentage = (100 * ((elapsed < duration) ? (elapsed / duration) : (duration / elapsed)));
           if (difference > 10 || percentage < 95) {
             // failed play logic - elapsed time is too far off duration
-            logDebug(`track: ${track.goose.track.name}—goose: ${track.goose.id} duration discrepancy. start ${track.status.start}, elapsed ${elapsed}, duration ${duration}, difference ${difference}, percentage ${percentage}`.replace(/(?<=\d*\.\d{3})\d+/g, ''));
+            plog.info(`track: ${track.goose.track.name}—goose: ${track.goose.id} duration discrepancy. start ${track.status.start}, elapsed ${elapsed}, duration ${duration}, difference ${difference}, percentage ${percentage}`.replace(/(?<=\d*\.\d{3})\d+/g, ''));
             db.logPlay(track.goose.id, false);
           } else {
             // successful play logic
@@ -101,7 +102,7 @@ export default class Player {
       adapterCreator: adapterCreator,
     });
     this.#connection.on('stateChange', async (oldState, newState) => {
-      logDebug(`Connection transitioned from ${oldState.status} to ${newState.status}`);
+      log.trace(`Connection transitioned from ${oldState.status} to ${newState.status}`);
       if (newState.status == VoiceConnectionStatus.Destroyed) {
         const listenerIDs:string[] = [];
         this.#listeners.forEach(listenerId => listenerIDs.push(listenerId));
@@ -124,7 +125,7 @@ export default class Player {
             }
           });
         }
-        logDebug(`Removing player for channel ${this.channelID} in guild ${this.guildID}`);
+        log.debug(`Removing player for channel ${this.channelID} in guild ${this.guildID}`);
         this.#audioPlayer.removeListener('stateChange', audioStateChange);
         delete Player.#players[this.guildID];
       }
@@ -140,8 +141,7 @@ export default class Player {
     } else if (overload instanceof BaseInteraction) {
       const interaction = overload;
       if (!interaction.guild || !interaction.member || !(interaction.member instanceof GuildMember)) { // none of these should be possible
-        log('error', [`getPlayer cursed—interaction ${interaction.id} from user ${interaction.user.username}#${interaction.user.discriminator}`,
-          `id ${interaction.user.id}—somehow interacting despite member/ guild not existing, or member not being a GuildMember. somehow`]);
+        plog.fatal(`getPlayer cursed—interaction ${interaction.id} from user ${interaction.user.username}#${interaction.user.discriminator} id ${interaction.user.id}—somehow interacting despite member/ guild not existing, or member not being a GuildMember. somehow`);
         return { message: 'uhoh' };
       }
       const channel = interaction.member.voice.channel;
@@ -166,8 +166,7 @@ export default class Player {
 
   static leave(interaction:CommandInteraction | ButtonInteraction) {
     if (!interaction.guild || !interaction.member || !(interaction.member instanceof GuildMember)) { // none of these should be possible
-      log('error', [`Player.leave cursed—interaction ${interaction.id} from user ${interaction.user.username}#${interaction.user.discriminator}`,
-        `id ${interaction.user.id}—somehow interacting despite member/ guild not existing, or member not being a GuildMember. somehow`]);
+      plog.fatal(`Player.leave cursed—interaction ${interaction.id} from user ${interaction.user.username}#${interaction.user.discriminator} id ${interaction.user.id}—somehow interacting despite member/ guild not existing, or member not being a GuildMember. somehow`);
       return { content: 'uhoh' };
     }
 
@@ -185,8 +184,7 @@ export default class Player {
   // events
   voiceJoin(oldState:VoiceState, newState:VoiceState, client:Client<true>) {
     if (!newState.member) { // shouldn't be possible
-      log('error', [`voiceJoin cursed—null member with user id ${newState.id} has somehow joined channel ${this.channelID} in guild ${this.guildID},`,
-        `${(oldState.member) ? `member was previously ${oldState.member.user.username}#${oldState.member.user.discriminator}` : ''}`]);
+      plog.fatal(`voiceJoin cursed—null member with user id ${newState.id} has somehow joined channel ${this.channelID} in guild ${this.guildID}, ${(oldState.member) ? `member was previously ${oldState.member.user.username}#${oldState.member.user.discriminator}` : ''}`);
       return;
     }
     const userId = newState.id;
@@ -194,7 +192,7 @@ export default class Player {
       this.#listeners.add(userId);
     } else if (client.user.id === userId) {
       const botChannel = client.channels.cache.get(newState.channelId!); // eslint-disable-next-line max-statements-per-line
-      if (!botChannel || !(botChannel instanceof VoiceChannel)) { log('error', [`voiceJoin cursed—bot channel ${newState.channelId}`]); return; } // not possible
+      if (!botChannel || !(botChannel instanceof VoiceChannel)) { plog.fatal(`voiceJoin cursed—bot channel ${newState.channelId}`); return; } // not possible
       botChannel.members.forEach(member => {
         if (!member.user.bot) { this.#listeners.add(member.user.id); }
       });
@@ -209,7 +207,7 @@ export default class Player {
 
     if (self) {
       if (!newState.member) { // I assume this happens if you kick/ ban the bot
-        log('error', [`bot ${client.user.username}#${client.user.discriminator} id ${userId} is no longer a guild member`]);
+        plog.error(`bot ${client.user.username}#${client.user.discriminator} id ${userId} is no longer a guild member`);
       }
       this.#connection.destroy();
       return;
@@ -235,7 +233,7 @@ export default class Player {
     }
     delete this.#embeds[userId];
     if (!this.#listeners.size) {
-      logDebug(`Client ${client.user.username} id ${client.user.id} alone in channel; leaving voice`);
+      log.debug(`Client ${client.user.username} id ${client.user.id} alone in channel; leaving voice`);
       this.#connection.destroy();
     }
   }
@@ -251,13 +249,13 @@ export default class Player {
           const resource = createAudioResource(stream.source);
           this.#audioPlayer.play(resource);
         } else {
-          log('error', ['play failure, no stream present for track with goose: ', track.goose.track.name, ' ', track.goose.id]);
+          plog.error('play failure, no stream present for track with goose: ', track.goose.track.name, ' ', track.goose.id);
           this.next();
           return;
         }
-        log('track', [`Playing from ${stream.type}: ${track.goose.artist.name} : ${track.goose.track.name}`]);
+        plog.info(`Playing from ${stream.type}: ${track.goose.artist.name} : ${track.goose.track.name}`);
       } catch (error:any) {
-        log('error', [error.stack]);
+        plog.error(error);
       }
     } else if (this.#audioPlayer.state.status == 'playing') { this.#audioPlayer.stop(); }
   }
@@ -276,13 +274,13 @@ export default class Player {
           const resource = createAudioResource(stream.source);
           this.#audioPlayer.play(resource);
         } else {
-          log('error', ['seek failure, no stream present for track with goose: ', track.goose.track.name, ' ', track.goose.id]);
+          plog.error('seek failure, no stream present for track with goose: ', track.goose.track.name, ' ', track.goose.id);
           this.next();
           return;
         }
-        log('track', [`Seeking to time ${time} in ${track.goose.artist.name} : ${track.goose.track.name} (${stream.type})`]);
+        plog.info(`Seeking to time ${time} in ${track.goose.artist.name} : ${track.goose.track.name} (${stream.type})`);
       } catch (error:any) {
-        log('error', [error.stack]);
+        plog.error(error);
       }
       track.status.seek = time;
       track.status.start = (Date.now() / 1000) - (time || 0);
@@ -295,7 +293,7 @@ export default class Player {
       if (stream) {
         return { source:stream, type:'subsonic' };
       } else {
-        log('error', ['unable to retrieve stream for subsonic id:', track.audioSource.subsonic.id[0]]);
+        plog.error('unable to retrieve stream for subsonic id:', track.audioSource.subsonic.id[0]);
         return;
       }
     } else {
@@ -339,7 +337,7 @@ export default class Player {
     force = (typeof force == 'boolean') ? force : undefined;
     const condition = (force == undefined) ? this.#queue.paused : !force;
     const result = (condition) ? !this.#audioPlayer.unpause() : this.#audioPlayer.pause();
-    (condition != result) ? this.#queue.paused = result : logDebug('togglePause failed');
+    (condition != result) ? this.#queue.paused = result : log.warn('togglePause failed');
     return ((condition != result) ? ({ content: (result) ? 'Paused.' : 'Unpaused.' }) : ({ content:'OH NO SOMETHING\'S FUCKED' }));
   }
 
@@ -408,21 +406,21 @@ export default class Player {
     const pending = Player.placeholderTrack('pending', username);
     const length = this.#queue.tracks.length; // eslint-disable-next-line max-statements-per-line
     if (index < 0) { index = 0; } else if (index > length) { index = length; }
-    logDebug(`pendingIndex—playhead is ${this.#queue.playhead}, track is ${(this.#queue.tracks[this.#queue.playhead]) ? this.#queue.tracks[this.#queue.playhead].goose.track.name : 'undefined because playhead == length'}`);
+    log.info(`pendingIndex—playhead is ${this.#queue.playhead}, track is ${(this.#queue.tracks[this.#queue.playhead]) ? this.#queue.tracks[this.#queue.playhead].goose.track.name : 'undefined because playhead == length'}`);
     if (this.#queue.playhead === length) { // on empty or ended queue, see addition as intent to play addition
       this.#queue.playhead = index;
     } else if (index <= this.#queue.playhead) { // if splice moves current, move the playhead
       this.#queue.playhead = this.#queue.playhead + 1;
     } // because pendingNext does playhead + 1 and splice constrains to length, you get playhead == pending and resume from idle. where on empty/ended this works, but keeps playhead at length instead of on the pending track
     this.#queue.tracks.splice(index, 0, pending);
-    logDebug(`pendingIndex—playhead is ${this.#queue.playhead}, track is ${(this.#queue.tracks[this.#queue.playhead]) ? this.#queue.tracks[this.#queue.playhead].goose.track.name : 'undefined for reasons?'}`);
+    log.info(`pendingIndex—playhead is ${this.#queue.playhead}, track is ${(this.#queue.tracks[this.#queue.playhead]) ? this.#queue.tracks[this.#queue.playhead].goose.track.name : 'undefined for reasons?'}`);
     return ({ UUID: pending.goose.UUID });
   }
 
   replacePlaceholder(tracks:Track[], targetUUID:string):boolean {
     const start = this.getIndex(targetUUID);
     if (start !== -1) {
-      logDebug(`replace—playhead is ${this.#queue.playhead}, track is ${(this.#queue.playhead < this.#queue.tracks.length) ? this.#queue.tracks[this.#queue.playhead].goose.track.name : 'undefined because playhead == length'}`);
+      log.info(`replace—playhead is ${this.#queue.playhead}, track is ${(this.#queue.playhead < this.#queue.tracks.length) ? this.#queue.tracks[this.#queue.playhead].goose.track.name : 'undefined because playhead == length'}`);
       tracks[0].goose.UUID = this.#queue.tracks[start].goose.UUID; // niche handling of replacement while dragging
       Player.assignUUID(tracks);
       if (this.#queue.playhead == this.#queue.tracks.length) { // on empty or ended queue, see addition as intent to play addition
@@ -432,7 +430,7 @@ export default class Player {
       }
       this.#queue.tracks.splice(start, 1, ...tracks);
       if (this.#audioPlayer.state.status == 'idle') { this.play(); }
-      logDebug(`replace—playhead is ${this.#queue.playhead}, track is ${(this.#queue.playhead < this.#queue.tracks.length) ? this.#queue.tracks[this.#queue.playhead].goose.track.name : 'undefined because playhead == length'}`);
+      log.info(`replace—playhead is ${this.#queue.playhead}, track is ${(this.#queue.playhead < this.#queue.tracks.length) ? this.#queue.tracks[this.#queue.playhead].goose.track.name : 'undefined because playhead == length'}`);
     }
     return (start !== -1);
   }
@@ -485,24 +483,24 @@ export default class Player {
   // enables concurrent modification while dragging
   move(from:number, to:number, targetUUID?:string) {
     const length = this.#queue.tracks.length;
-    logDebug(`move—initial from: ${from}, to: ${to}, length: ${length}`);
+    log.debug(`move—initial from: ${from}, to: ${to}, length: ${length}`);
 
     // happens first because wrong values of from need corrected before it's used;
     // redundant length check to safely check UUID, then after because UUID is optional
     if (targetUUID && from < length && this.#queue.tracks[from].goose.UUID !== targetUUID) {
-      logDebug(`move—UUID mismatch; target UUID [${targetUUID}]`);
+      log.info(`move—UUID mismatch; target UUID [${targetUUID}]`);
       from = this.getIndex(targetUUID);
       if (from == -1) {
-        logDebug(`move—could not find UUID [${targetUUID}]`);
+        log.warn(`move—could not find UUID [${targetUUID}]`);
         return ({ success: false, message: 'either someone else removed that track while you were moving it or we\'ve fucked up' });
       }
-      logDebug(`move—UUID [${targetUUID}] matched to queue[${from}]`);
+      log.info(`move—UUID [${targetUUID}] matched to queue[${from}]`);
     }
     if (from < to) { to--; } // splice-removing [from] decrements all indexes > from
 
     if (from < length && to < length && from !== to) {
       let playhead = this.#queue.playhead;
-      logDebug(`move—playhead is ${playhead}, track is ${(playhead < length) ? this.#queue.tracks[playhead].goose.track.name : 'undefined because playhead == length'}`);
+      log.debug(`move—playhead is ${playhead}, track is ${(playhead < length) ? this.#queue.tracks[playhead].goose.track.name : 'undefined because playhead == length'}`);
 
       const removed = this.#queue.tracks.splice(from, 1);
       this.#queue.tracks.splice(to, 0, removed[0]);
@@ -515,7 +513,7 @@ export default class Player {
         playhead = to;
       } else { /* do nothing */ }
       this.#queue.playhead = playhead;
-      logDebug(`move—playhead is ${playhead}, track is ${(playhead < length) ? this.#queue.tracks[playhead].goose.track.name : 'undefined because playhead == length'}`);
+      log.debug(`move—playhead is ${playhead}, track is ${(playhead < length) ? this.#queue.tracks[playhead].goose.track.name : 'undefined because playhead == length'}`);
 
       return ({ success: true, message: `moved ${removed[0].goose.track.name} from position ${from + 1} to position ${to + 1}` });
     } else { return ({ success: false, message: `could not move track from position ${from} to position ${to}. ${(from >= length) ? '\tfrom > length' : ''} ${(to > length) ? '\tto > length' : ''} ${(from == to) ? '\tfrom == to' : ''}` }); }
@@ -537,7 +535,7 @@ export default class Player {
     const index = this.getIndex(targetUUID);
     if (index !== -1) {
       removed = this.remove(index);
-      logDebug(`Removed item ${index} with matching UUID`);
+      log.info(`Removed item ${index} with matching UUID`);
     }
     return (removed);
   }
@@ -547,13 +545,13 @@ export default class Player {
     while (this.#queue.tracks.findIndex(idTest) > 0) {
       const index = this.#queue.tracks.findIndex(idTest);
       this.remove(index);
-      logDebug(`Removed item ${index} with matching goose id`);
+      log.info(`Removed item ${index} with matching goose id`);
     }
   }
 
   static removeFromAll(id:string) {
     for (const player of Object.values(Player.#players)) {
-      logDebug(`Attempting to remove ${id} from ${player.guildID}`);
+      log.info(`Attempting to remove ${id} from ${player.guildID}`);
       player.removeById(id);
     }
   }
@@ -701,7 +699,7 @@ export default class Player {
   }
 
   getStatus():PlayerStatus {
-    if (!this.#queue) { logDebug('player—getStatus and queue nullish'); }
+    if (!this.#queue) { log.warn('player—getStatus and queue nullish'); }
     return this.#queue;
   }
 
@@ -826,7 +824,7 @@ export default class Player {
     const { embeds, components } = JSON.parse(JSON.stringify(embed));
     switch (type) {
       case 'queue': {
-        logDebug('decommission queue');
+        log.trace('decommission queue');
         embeds[0].footer = { text: message };
         for (const row of components) {
           for (const button of row.components) { button.style = 2; }
@@ -836,7 +834,7 @@ export default class Player {
         // break;
       }
       case 'media': {
-        logDebug('decommission media');
+        log.trace('decommission media');
         embeds[0].footer = { text: message };
         for (const button of components[0].components) { button.style = 2; }
         components[0].components[2].label = (this.getPause()) ? 'Play' : 'Pause';
@@ -898,7 +896,7 @@ export default class Player {
               return (this.#embeds[id].queue!.userPage);
             },
             update: async (userId:string, description:string, content?:InteractionUpdateOptions | InteractionReplyOptions) => {
-              logDebug(`${name} queue: ${description}`); // to do, consider a bandaid like if description === 'web sync', refreshTimer.refresh();
+              log.debug(`${name} queue: ${description}`); // TODO: consider a bandaid like if description === 'web sync', refreshTimer.refresh();
               const contentPage = (content) ? (content.embeds![0] as APIEmbed)?.fields?.[1]?.value?.match(embedPage) : null;
               const differentPage = (contentPage) ? !(Number(contentPage[1]) === this.#embeds[id].queue!.getPage()) : null;
               if (!content || differentPage) { content = await this.queueEmbed('Current Queue:', this.#embeds[id].queue!.getPage(), false); }
@@ -936,7 +934,7 @@ export default class Player {
             }, 15000).unref(),
             update: async (userId:string, description:string, content?:InteractionUpdateOptions | InteractionReplyOptions) => {
               content ||= await this.mediaEmbed(false);
-              logDebug(`${name} media: ${description}`); // to do, consider a bandaid like if description === 'web sync', refreshTimer.refresh();
+              log.debug(`${name} media: ${description}`); // TODO: consider a bandaid like if description === 'web sync', refreshTimer.refresh();
               const { embeds, components, files } = content!;
               if (!this.#embeds[userId].media!.interaction!.replied && files) {
                 this.#embeds[userId].media!.interaction!.message = await this.#embeds[userId].media!.interaction!.editReply({ embeds: embeds, components: components, files: files });
@@ -948,7 +946,7 @@ export default class Player {
       }
 
       default: {
-        logDebug(`register failing with type: ${type}`);
+        log.warn(`register failing with type: ${type}`);
         break;
       }
     }
@@ -971,7 +969,7 @@ export default class Player {
         break;
       }
       default: {
-        logDebug(`player sync—bad case: ${type}`);
+        log.warn(`player sync—bad case: ${type}`);
         break;
       }
     }
@@ -1000,7 +998,7 @@ export default class Player {
           break;
         }
         default: {
-          logDebug(`web sync—bad case: ${type}`);
+          log.warn(`web sync—bad case: ${type}`);
         }
       }
     } // else { logDebug('no embeds'); }

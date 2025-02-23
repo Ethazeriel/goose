@@ -1,11 +1,11 @@
 import fs from 'fs';
 import { fileURLToPath, URL } from 'url';
-import { logDebug, log } from '../../logger.js';
+import { log } from '../../logger.js';
 import axios, { AxiosResponse } from 'axios';
 const { spotify }:GooseConfig = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../../../config/config.json', import.meta.url).toString()), 'utf-8'));
 
 async function getCreds():Promise<ClientCredentialsResponse> {
-  logDebug('getting spotify token');
+  log.debug('getting spotify token');
   const spotifyCredentialsAxios:AxiosResponse<ClientCredentialsResponse> = await axios({
     url: 'https://accounts.spotify.com/api/token',
     method: 'post',
@@ -21,7 +21,7 @@ async function getCreds():Promise<ClientCredentialsResponse> {
 }
 
 async function fromTrack(auth:ClientCredentialsResponse, id:string):Promise<TrackSource> {
-  log('fetch', [`spotifyFromTrack: ${id}`]);
+  log.info(`spotifyFromTrack: ${id}`);
   const spotifyResultAxios:AxiosResponse<SpotifyApi.SingleTrackResponse> = await axios({
     url: `https://api.spotify.com/v1/tracks/${id}`,
     method: 'get',
@@ -54,7 +54,7 @@ async function fromTrack(auth:ClientCredentialsResponse, id:string):Promise<Trac
 }
 
 async function fromText(auth:ClientCredentialsResponse, search:string):Promise<TrackSource | null> {
-  log('fetch', [`spotifyFromText: ${search}`]);
+  log.info(`spotifyFromText: ${search}`);
   const spotifyResultAxios:AxiosResponse<SpotifyApi.TrackSearchResponse> = await axios({
     url: `https://api.spotify.com/v1/search?type=track&limit=1&q=${search}`,
     method: 'get',
@@ -88,7 +88,7 @@ async function fromText(auth:ClientCredentialsResponse, search:string):Promise<T
 }
 
 async function fromAlbum(auth:ClientCredentialsResponse, id:string):Promise<Array<TrackSource>> {
-  log('fetch', [`spotifyFromAlbum: ${id}`]);
+  log.info(`spotifyFromAlbum: ${id}`);
   const spotifyResultAxios:AxiosResponse<SpotifyApi.SingleAlbumResponse> = await axios({
     url: `https://api.spotify.com/v1/albums/${id}`,
     method: 'get',
@@ -123,7 +123,7 @@ async function fromAlbum(auth:ClientCredentialsResponse, id:string):Promise<Arra
 }
 
 async function fromPlaylist(auth:ClientCredentialsResponse, id:string):Promise<Array<TrackSource>> {
-  log('fetch', [`spotifyFromPlaylist: ${id}`]);
+  log.info(`spotifyFromPlaylist: ${id}`);
   const spotifyTracks = [];
   const limit = 100;
   let offset = 0;

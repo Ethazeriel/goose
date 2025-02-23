@@ -12,7 +12,7 @@ const { subsonic, root_url }:GooseConfig = JSON.parse(fs.readFileSync(fileURLToP
 // also a target for federation with additional details like listenbrainz
 
 async function fromTrack(id:string):Promise<TrackSource> {
-  log('fetch', [`subsonicFromTrack: ${id}`]);
+  log.info(`subsonicFromTrack: ${id}`);
   const salt = crypto.randomBytes(10).toString('hex');
   const hash = crypto.createHash('md5').update(`${subsonic.password}${salt}`).digest('hex');
   const subsonicResultAxios:AxiosResponse<SubsonicSongResponse> = await axios({
@@ -46,7 +46,7 @@ async function fromTrack(id:string):Promise<TrackSource> {
 }
 
 async function fromAlbum(id:string):Promise<Array<TrackSource>> {
-  log('fetch', [`subsonicFromAlbum: ${id}`]);
+  log.info(`subsonicFromAlbum: ${id}`);
   const salt = crypto.randomBytes(10).toString('hex');
   const hash = crypto.createHash('md5').update(`${subsonic.password}${salt}`).digest('hex');
   const subsonicResultAxios:AxiosResponse<SubsonicAlbumResponse> = await axios({
@@ -82,7 +82,7 @@ async function fromAlbum(id:string):Promise<Array<TrackSource>> {
 }
 
 async function fromPlaylist(id:string):Promise<Array<TrackSource>> {
-  log('fetch', [`subsonicFromPlaylist: ${id}`]);
+  log.info(`subsonicFromPlaylist: ${id}`);
   const salt = crypto.randomBytes(10).toString('hex');
   const hash = crypto.createHash('md5').update(`${subsonic.password}${salt}`).digest('hex');
   const subsonicResultAxios:AxiosResponse<SubsonicPlaylistResponse> = await axios({
@@ -118,7 +118,7 @@ async function fromPlaylist(id:string):Promise<Array<TrackSource>> {
 }
 
 async function fromText(search:string):Promise<TrackSource | null> {
-  log('fetch', [`subsonicFromText: ${search}`]);
+  log.info(`subsonicFromText: ${search}`);
   const salt = crypto.randomBytes(10).toString('hex');
   const hash = crypto.createHash('md5').update(`${subsonic.password}${salt}`).digest('hex');
   const subsonicResultAxios:AxiosResponse<SubsonicSearchResponse> = await axios({

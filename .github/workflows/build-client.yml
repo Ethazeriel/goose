@@ -23,5 +23,7 @@ jobs:
       run: npm install -w packages/utils
     - name: Install npm packages (client)
       run: npm install -w apps/client
+    - name: Build utils package
+      run: npm run -w packages/utils build
     - name: Build the Client-side code
       run: npm run -w apps/client build

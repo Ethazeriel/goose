@@ -26,7 +26,6 @@ services:
     image: goosebot
     restart: unless-stopped
     volumes:
-      - ./compose/goose/logs:/goose/logs
       - ./config:/goose/config
       - client-assets:/client-assets
       - nginx-config:/nginx

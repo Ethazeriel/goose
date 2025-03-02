@@ -26,6 +26,7 @@ RUN apk --no-cache add python3
 RUN apk --no-cache add dumb-init
 WORKDIR /goose
 COPY . .
+WORKDIR /goose/apps/server
 RUN npm install
 COPY --chown=node:node  --from=serverbuild /goose/apps/server/build ./apps/server/build
 COPY --chown=node:node  --from=serverbuild /goose/packages/utils/dist ./packages/utils/dist

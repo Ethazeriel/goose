@@ -1,5 +1,22 @@
-🐎
+# Goose
+**(a discord bot, for now)**
 
+### Running
+The supported way to run the bot is via docker. A prebuilt image is not provided at this time; to run the project, do the following:
+
+1. Clone this repository.
+2. Build the docker image - `docker build -t goosebot .`
+3. follow the instructions in the config directory to create a config file and cookies.
+4. Start the project with the provided compose file - `docker compose up -d`
+
+### Updating
+// TODO - expand, explain
+
+1. `docker compose down -v`
+2. `git pull origin main`
+3. `docker compose up -d`
+
+🐎
 
 This work is licensed under a
 [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License][cc-by-nc-sa].

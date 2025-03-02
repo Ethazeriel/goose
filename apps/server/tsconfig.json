@@ -1,0 +1,21 @@
+{
+  "extends": "../../packages/ts-config/tsconfig.json",
+  "compilerOptions": {
+    "rootDir":"src",
+    "outDir": "build",
+    "lib": ["esnext", "ES2020.Promise"],
+    "types": ["node", "spotify-api", "discord.js"],
+    "paths": {
+      "@ethgoose/*": ["./packages/*"]
+    },
+  },
+  "exclude": ["build", "eslint.config.mjs"],
+  "references": [
+    {
+      "path": "../../packages/types"
+    },
+    {
+      "path": "../../packages/utils"
+    }
+  ]
+}

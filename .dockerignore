@@ -6,3 +6,4 @@ compose
 .github
 config
 *.tsbuildinfo
+.turbo

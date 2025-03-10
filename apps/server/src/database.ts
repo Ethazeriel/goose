@@ -4,10 +4,11 @@ import { Document, MongoClient } from 'mongodb';
 import type { Db, Filter, FindOptions, UpdateFilter } from 'mongodb';
 import { log } from './logger.js';
 import chalk from 'chalk';
+import crypto from 'crypto';
 const { mongo }:GooseConfig = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../config/config.json', import.meta.url).toString()), 'utf-8'));
 import { sanitizePlaylists } from '@ethgoose/utils/regex';
 import { isMainThread, workerData } from 'worker_threads';
-import { trackVersion, upgradeTrack } from './migrations.js';
+import { trackVersion, upgradeTrack, userVersion, upgradeUser } from './migrations.js';
 // import Player from './player.js';
 // Connection URL
 let url = mongo.url;
@@ -380,6 +381,11 @@ export async function newUser(discord:DiscordUser) { // usage: await newUser({ i
     if (test == null) {
       // we don't have this in our database yet, so
       const object:User = {
+        goose: {
+          id: crypto.randomUUID(),
+          username: discord.username,
+          locale: discord.locale || 'UNK'
+        },
         discord: {
           id:discord.id,
           locale:discord.locale || 'UNK',
@@ -389,6 +395,7 @@ export async function newUser(discord:DiscordUser) { // usage: await newUser({ i
         },
         stash: { playhead:0, tracks:[] },
         tokens: {},
+        version: 1
       };
       const result = await userdb.insertOne(object);
       dblog.info(`Adding user ${chalk.green(`${discord.username}#${discord.discriminator}`)} to database`);
@@ -405,7 +412,12 @@ export async function getUser(discordid:string):Promise<User | undefined> { // u
   try {
     const userdb = db.collection<User>(usercol);
     const result = await userdb.findOne({ 'discord.id': discordid }, { projection: { _id: 0 } });
-    if (result) {return result; }
+    if (result) {
+      if (result.version === userVersion) { return result; } else {
+        const newResult = await upgradeUser(result);
+        return newResult;
+      }
+    }
   } catch (error:any) {
     dblog.error({ err: error }, 'getUser error:');
   }
@@ -444,6 +456,27 @@ export async function updateUser(discordid:string, field:'nickname' | 'locale' |
     return result;
   } catch (error:any) {
     dblog.error({ err: error }, 'updateUser error:');
+  }
+}
+
+export async function replaceUser(user:User):Promise<number> {
+  // for user migrations
+  const db = await getDb();
+  const users = db.collection<User>(usercol);
+  let currentUser = null;
+  if (user.version === 1) { // migration that added user ids, so we have to use discord ID just this once
+    currentUser = await users.findOne({ 'discord.id': user.discord.id }, { projection: { _id: 0 } });
+  } else {
+    currentUser = await users.findOne({ 'goose.id': user.goose.id }, { projection: { _id: 0 } });
+  }
+  if (currentUser == null) {
+    throw new Error(`replaceUser failed for ${user.goose.username}: do they exist?`);
+  } else if (user.version === 1) { // migration that added user ids, so we have to use discord ID just this once
+    const result = await users.replaceOne({ 'discord.id': user.discord.id }, user);
+    return result.modifiedCount;
+  } else {
+    const result = await users.replaceOne({ 'goose.id': user.goose.id }, user);
+    return result.modifiedCount;
   }
 }
 

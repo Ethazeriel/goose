@@ -5,22 +5,22 @@
       "name": "Server - Start",
       "request": "launch",
       "command": "npm run debug",
-      "cwd": "${workspaceFolder}/server"
+      "cwd": "${workspaceFolder}/apps/server"
     },
     {
       "type": "firefox",
       "name": "Client - Start",
       "skipFiles": [
-        "${workspaceFolder}/client/node_modules/**/*.js"
+        "${workspaceFolder}/apps/client/node_modules/**/*.js"
       ],
       "request": "launch",
       "reAttach": true,
       "url": "http://localhost:3000",
-      "webRoot": "${workspaceFolder}/client",
+      "webRoot": "${workspaceFolder}/apps/client",
       "pathMappings": [
         {
           "url": "http://localhost:3000",
-          "path": "${workspaceFolder}/client"
+          "path": "${workspaceFolder}/apps/client"
         }
       ]
     }

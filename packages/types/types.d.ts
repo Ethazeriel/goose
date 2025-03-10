@@ -1,4 +1,10 @@
 interface User {
+	goose: {
+		id: string,
+		locale: string,
+		username: string
+	}
+	version: number
 	discord: {
 		id: string,
 		locale: string,

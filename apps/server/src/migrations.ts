@@ -2,9 +2,47 @@ import * as db from './database.js';
 import { log } from './logger.js';
 import { sanitize } from '@ethgoose/utils/regex';
 import subsonic from './workers/acquire/subsonic.js';
+import crypto from 'crypto';
 
 
 const trackVersion = 1;
+const userVersion = 1;
+
+async function upgradeUser(user:User, internal:boolean = false):Promise<User> {
+  // no version means 0
+  if (!user.version) {user.version = 0;}
+  log.info(`Migrating user ${user.goose?.username || user.discord.username.current} from version ${user.version}`);
+  switch (user.version) {
+
+    case 0:{
+    // addition of goose field and version to user object to prep for move away from discord
+      user.goose = {
+        id: crypto.randomUUID(),
+        locale: user.discord.locale,
+        username: user.discord.username.current
+      };
+      user.version = 1;
+      return await upgradeUser(user, true);
+    }
+
+    case userVersion:{
+      if (internal === false) {
+        log.warn('upgradeUser called but user is already up to date');
+        return user;
+      } else {
+        log.info(`User object for ${user.goose.username} migrated to version ${userVersion}`);
+        const result = await db.replaceUser(user);
+        if (result !== 1) {
+          log.warn(`User replacement failed for ${user.goose.username}, returned ${result} items modified`);
+        }
+        return user;
+      }
+    }
+  }
+  log.fatal('hit cursed upgradeUser exit');
+  // should never reach this return; just here to appease TS
+  return user;
+}
 
 async function upgradeTrack(track:Track, internal:boolean = false):Promise<Track> {
   // if no version string, assume this is a pre-audiosource track and set version to 0
@@ -40,7 +78,10 @@ async function upgradeTrack(track:Track, internal:boolean = false):Promise<Track
         return track;
       } else {
         log.info(`Track ${track.goose.id} migrated, updating db`);
-        db.replaceTrack(track);
+        const result = await db.replaceTrack(track);
+        if (result !== 1) {
+          log.warn(`Track replacement failed for ${track.goose.track.name}, returned ${result} items modified`);
+        }
         return track;
       }
     }
@@ -50,5 +91,5 @@ async function upgradeTrack(track:Track, internal:boolean = false):Promise<Track
   return track;
 }
 
-export { trackVersion, upgradeTrack };
+export { trackVersion, upgradeTrack, userVersion, upgradeUser };
 

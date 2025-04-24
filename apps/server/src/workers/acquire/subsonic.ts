@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: Ethazeriel <eth@ethazeriel.net>
+//
+// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
 import fs from 'fs';
 import { fileURLToPath, URL } from 'url';
 import crypto from 'crypto';

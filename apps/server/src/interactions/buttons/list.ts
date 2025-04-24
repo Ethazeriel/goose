@@ -1,3 +1,8 @@
+// SPDX-FileCopyrightText: Ethazeriel <eth@ethazeriel.net>
+// SPDX-FileCopyrightText: Whuppee
+//
+// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
 import { embedPage } from '@ethgoose/utils/regex';
 import Workspace from '../../workspace.js';
 import { ButtonInteraction, GuildMember, InteractionDeferUpdateOptions, InteractionEditReplyOptions, InteractionReplyOptions } from 'discord.js';

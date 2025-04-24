@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: Ethazeriel <eth@ethazeriel.net>
+//
+// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
 import { ContextMenuCommandBuilder } from '@discordjs/builders';
 import * as db from '../../database.js';
 import Translator from '../../translate.js';

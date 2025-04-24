@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: Ethazeriel <eth@ethazeriel.net>
+//
+// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
 /* eslint-disable no-console */
 import fs from 'fs';
 import { MongoClient } from 'mongodb';

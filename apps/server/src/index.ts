@@ -1,3 +1,8 @@
+// SPDX-FileCopyrightText: Ethazeriel <eth@ethazeriel.net>
+// SPDX-FileCopyrightText: Whuppee
+//
+// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
 import fs from 'fs';
 import crypto from 'crypto';
 import { Client, Collection, GatewayIntentBits, VoiceChannel } from 'discord.js';

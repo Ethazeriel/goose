@@ -1,3 +1,8 @@
+// SPDX-FileCopyrightText: Ethazeriel <eth@ethazeriel.net>
+// SPDX-FileCopyrightText: Whuppee
+//
+// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
 // eslint-disable-next-line spaced-comment
 /// <reference types="vite-plugin-svgr/client" />
 /* eslint-disable @typescript-eslint/no-unused-vars */

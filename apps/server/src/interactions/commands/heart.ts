@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: Ethazeriel <eth@ethazeriel.net>
+//
+// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
 import { SlashCommandBuilder } from '@discordjs/builders';
 import * as utils from '../../utils.js';
 import type { ChatInputCommandInteraction } from 'discord.js';

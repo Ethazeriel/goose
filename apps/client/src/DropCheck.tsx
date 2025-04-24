@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: Whuppee
+//
+// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
 import './App.css';
 import * as React from 'react';
 

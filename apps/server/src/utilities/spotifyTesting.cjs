@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: Whuppee
+//
+// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
 const request = require('request');
 const { writeFile } = require('fs/promises');
 const { spotifyPattern, sanitize } = require('../regexes.js');

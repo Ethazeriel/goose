@@ -1,3 +1,8 @@
+// SPDX-FileCopyrightText: Ethazeriel <eth@ethazeriel.net>
+// SPDX-FileCopyrightText: Whuppee
+//
+// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
 import * as db from '../database.js';
 import helmet from 'helmet';
 import express from 'express';

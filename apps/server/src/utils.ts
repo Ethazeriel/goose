@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: Ethazeriel <eth@ethazeriel.net>
+//
+// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
 import { AttachmentBuilder, ChatInputCommandInteraction, InteractionEditReplyOptions } from 'discord.js';
 import { log } from './logger.js';
 // import Canvas from 'canvas';

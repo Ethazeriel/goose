@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: Ethazeriel <eth@ethazeriel.net>
+//
+// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
 // I'm making these up from API responses because I can't find them really documented anywhere else
 // almost certainly these are wrong
 // even if they're correct, they're mostly too broad to be useful
@@ -89,12 +93,12 @@ type SubsonicSong = {
   suffix: string, // eg. "flac"
   duration: number, // in seconds
   bitRate: number,
-  path: string, //where this is on disk
+  path: string, // where this is on disk
   discNumber: number,
   created: string, // datetime, when added to subsonic server
   albumId: string,
   artistId: string,
-  type: "music", //strictly speaking could be something else, but we won't support that
+  type: "music", // strictly speaking could be something else, but we won't support that
   isVideo: boolean,
   bpm: number,
   comment: string,

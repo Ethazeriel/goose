@@ -1,3 +1,8 @@
+// SPDX-FileCopyrightText: Ethazeriel <eth@ethazeriel.net>
+// SPDX-FileCopyrightText: Whuppee
+//
+// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
 import Player from './player.js';
 import { CommandInteraction, AttachmentBuilder, InteractionReplyOptions } from 'discord.js';
 import * as utils from '@ethgoose/utils';

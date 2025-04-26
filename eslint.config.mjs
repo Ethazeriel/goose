@@ -1,3 +1,8 @@
+// SPDX-FileCopyrightText: Ethazeriel <eth@ethazeriel.net>
+// SPDX-FileCopyrightText: Whuppee
+//
+// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
 import typescriptEslint from '@typescript-eslint/eslint-plugin';
 import globals from 'globals';
 import tsParser from '@typescript-eslint/parser';

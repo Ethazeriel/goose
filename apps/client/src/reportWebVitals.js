@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: Ethazeriel <eth@ethazeriel.net>
+//
+// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
 const reportWebVitals = onPerfEntry => {
   if (onPerfEntry && onPerfEntry instanceof Function) {
     import('web-vitals').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {

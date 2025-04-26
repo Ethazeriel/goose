@@ -1,3 +1,8 @@
+// SPDX-FileCopyrightText: Ethazeriel <eth@ethazeriel.net>
+// SPDX-FileCopyrightText: Whuppee
+//
+// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { dragPattern, youtubePattern, youtubePlaylistPattern, spotifyPattern, napsterPattern, subsonicPattern } from '@ethgoose/utils/regex';
 

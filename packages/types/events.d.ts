@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: Whuppee
+//
+// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
 // declare type DOMEvent<E extends React.Event, T extends Element> = E & { readonly target: T; }
 // declare type DOMEvent<E extends React.Event> = E & { readonly target: Element; }
 

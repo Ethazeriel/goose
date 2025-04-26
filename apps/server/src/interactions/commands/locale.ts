@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: Ethazeriel <eth@ethazeriel.net>
+//
+// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
 import { SlashCommandBuilder } from '@discordjs/builders';
 import Translator from '../../translate.js';
 import * as db from '../../database.js';

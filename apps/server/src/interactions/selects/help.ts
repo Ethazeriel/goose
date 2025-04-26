@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: Ethazeriel <eth@ethazeriel.net>
+//
+// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
 import { StringSelectMenuInteraction } from 'discord.js';
 import { helpEmbed } from '../commands/help.js';
 

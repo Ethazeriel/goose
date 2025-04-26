@@ -1,3 +1,8 @@
+// SPDX-FileCopyrightText: Ethazeriel <eth@ethazeriel.net>
+// SPDX-FileCopyrightText: Whuppee
+//
+// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
 import { Worker } from 'worker_threads';
 import crypto from 'crypto';
 import { log } from './logger.js';
@@ -5,7 +10,7 @@ import { fileURLToPath, URL } from 'url';
 import Player from './player.js';
 
 const sleep = (ms:number) => new Promise((resolve) => setTimeout(resolve, ms));
-let slowMode:boolean;
+let slowMode:boolean; // TODO: remove? hide behind dev flag?
 export function toggleSlowMode() {
   slowMode = !slowMode;
 }

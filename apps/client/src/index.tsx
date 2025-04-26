@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: Ethazeriel <eth@ethazeriel.net>
+//
+// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
 import './wdyr';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom/client';

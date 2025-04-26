@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: Ethazeriel <eth@ethazeriel.net>
+//
+// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
 import Translator from '../../translate.js';
 import * as db from '../../database.js';
 import { ButtonInteraction, InteractionDeferUpdateOptions } from 'discord.js';

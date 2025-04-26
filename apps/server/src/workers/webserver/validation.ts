@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: Ethazeriel <eth@ethazeriel.net>
+//
+// SPDX-License-Identifier: CC-BY-NC-SA-4.0
+
 import Joi from 'joi';
 import { napsterPattern, spotifyPattern, youtubePattern, youtubePlaylistPattern, sanitize } from '@ethgoose/utils/regex';
 import subsonic from '../acquire/subsonic.js';

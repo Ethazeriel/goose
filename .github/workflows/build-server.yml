@@ -1,5 +1,7 @@
 name: Build Server CI
-
+permissions:
+  contents: read
+  
 on:
   push:
     branches: [ "*" ]

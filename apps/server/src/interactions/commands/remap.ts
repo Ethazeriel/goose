@@ -10,8 +10,8 @@ import * as db from '../../database.js';
 import * as utils from '@ethgoose/utils';
 import Player from '../../player.js';
 import youtube from '../../workers/acquire/youtube.js';
-import fs from 'fs';
-import { fileURLToPath, URL } from 'url';
+import fs from 'node:fs';
+import { fileURLToPath, URL } from 'node:url';
 const { discord }:GooseConfig = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../../../config/config.json', import.meta.url).toString()), 'utf-8'));
 const roles = discord.roles;
 

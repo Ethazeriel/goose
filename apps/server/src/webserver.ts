@@ -3,14 +3,14 @@
 //
 // SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
-import { Worker } from 'worker_threads';
+import { Worker } from 'node:worker_threads';
 import { log } from './logger.js';
 import Player from './player.js';
 import fetch from './acquire.js';
 import { toggleSlowMode } from './acquire.js';
 import { seekTime as seekRegex } from '@ethgoose/utils/regex';
 import validator from 'validator';
-import { fileURLToPath, URL } from 'url';
+import { fileURLToPath, URL } from 'node:url';
 
 let worker = new Worker(fileURLToPath(new URL('./workers/webserver.js', import.meta.url).toString()), { workerData:{ name:'WebServer' } });
 worker.on('exit', code => {

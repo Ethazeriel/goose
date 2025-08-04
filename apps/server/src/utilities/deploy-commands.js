@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
 /* eslint-disable no-console */
-import fs from 'fs';
+import fs from 'node:fs';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
 const { client_id, guildId, token } = JSON.parse(fs.readFileSync(new URL('../../config.json', import.meta.url))).discord;

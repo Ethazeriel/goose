@@ -2,9 +2,9 @@
 //
 // SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
-import fs from 'fs';
-import { fileURLToPath, URL } from 'url';
-import crypto from 'crypto';
+import fs from 'node:fs';
+import { fileURLToPath, URL } from 'node:url';
+import crypto from 'node:crypto';
 import { log } from '../../logger.js';
 import axios, { AxiosResponse } from 'axios';
 import stream from 'node:stream';

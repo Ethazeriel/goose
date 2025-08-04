@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
 /* eslint-disable no-fallthrough */
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 export function progressBar(size:number, duration:number, playhead:number, { start, end, barbefore, barafter, head }:ProgressBarOptions = {}):string {
   start ??= '[';

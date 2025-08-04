@@ -3,16 +3,16 @@
 //
 // SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
-import fs from 'fs';
-import { fileURLToPath, URL } from 'url';
+import fs from 'node:fs';
+import { fileURLToPath, URL } from 'node:url';
 import { Document, MongoClient } from 'mongodb';
 import type { Db, Filter, FindOptions, UpdateFilter } from 'mongodb';
 import { log } from './logger.js';
 import chalk from 'chalk';
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 const { mongo }:GooseConfig = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../config/config.json', import.meta.url).toString()), 'utf-8'));
 import { sanitizePlaylists } from '@ethgoose/utils/regex';
-import { isMainThread, workerData } from 'worker_threads';
+import { isMainThread, workerData } from 'node:worker_threads';
 import { trackVersion, upgradeTrack, userVersion, upgradeUser } from './migrations.js';
 // import Player from './player.js';
 // Connection URL

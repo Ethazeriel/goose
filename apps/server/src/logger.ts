@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
-import fs from 'fs';
+import fs from 'node:fs';
 import chalk from 'chalk';
 import { sanitize } from '@ethgoose/utils/regex';
-import { fileURLToPath, URL } from 'url';
+import { fileURLToPath, URL } from 'node:url';
 const { logLevel }:GooseConfig = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../config/config.json', import.meta.url).toString()), 'utf-8'));
 import { ButtonInteraction, CommandInteraction, MessageContextMenuCommandInteraction, GuildMember, MessageInteraction, StringSelectMenuInteraction, ComponentType } from 'discord.js';
 import { pino } from 'pino';

@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
 /* eslint-disable no-console */
-import fs from 'fs';
+import fs from 'node:fs';
 import { MongoClient } from 'mongodb';
 import { log } from '../logger.js';
 const mongo = JSON.parse(fs.readFileSync(new URL('../../../config.json', import.meta.url))).mongo;

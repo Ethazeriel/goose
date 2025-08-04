@@ -6,7 +6,7 @@ import * as db from './database.js';
 import { log } from './logger.js';
 import { sanitize } from '@ethgoose/utils/regex';
 import subsonic from './workers/acquire/subsonic.js';
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 
 const trackVersion = 1;

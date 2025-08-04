@@ -6,8 +6,8 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import Player from '../../player.js';
 import { log } from '../../logger.js';
-import fs from 'fs';
-import { fileURLToPath, URL } from 'url';
+import fs from 'node:fs';
+import { fileURLToPath, URL } from 'node:url';
 import { ChatInputCommandInteraction, GuildMemberRoleManager, Message, InteractionEditReplyOptions } from 'discord.js';
 const { discord }:GooseConfig = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../../../config/config.json', import.meta.url).toString()), 'utf-8'));
 const roles = discord.roles;

@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 import * as db from '../database.js';
 import { log as logBase } from '../logger.js';
 import { youtubePattern, spotifyPattern, sanitize, youtubePlaylistPattern, napsterPattern } from '@ethgoose/utils/regex';
-import { parentPort } from 'worker_threads';
+import { parentPort } from 'node:worker_threads';
 import youtube from './acquire/youtube.js';
 import spotify from './acquire/spotify.js';
 import napster from './acquire/napster.js';

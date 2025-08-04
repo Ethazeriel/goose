@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
-import fs from 'fs';
-import { fileURLToPath, URL } from 'url';
+import fs from 'node:fs';
+import { fileURLToPath, URL } from 'node:url';
 import { log } from '../../logger.js';
 import ytdl from 'ytdl-core';
 import axios, { AxiosResponse } from 'axios';

@@ -3,8 +3,8 @@
 // SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
 /* eslint-disable no-console */
-import fs from 'fs';
-import { fileURLToPath, URL } from 'url';
+import fs from 'node:fs';
+import { fileURLToPath, URL } from 'node:url';
 import { MongoClient } from 'mongodb';
 import { log } from '../logger.js';
 const { mongo } = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../../../config.json', import.meta.url).toString()), 'utf-8'));

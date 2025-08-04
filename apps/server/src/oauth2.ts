@@ -5,8 +5,8 @@
 import * as db from './database.js';
 import axios, { AxiosResponse } from 'axios';
 import { log } from './logger.js';
-import fs from 'fs';
-import { fileURLToPath, URL } from 'url';
+import fs from 'node:fs';
+import { fileURLToPath, URL } from 'node:url';
 const { discord, spotify, mongo, napster }:GooseConfig = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../config/config.json', import.meta.url).toString()), 'utf-8'));
 const usercol = mongo.usercollection;
 import chalk from 'chalk';

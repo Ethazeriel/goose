@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
-import fs from 'fs';
+import fs from 'node:fs';
 import { v2 } from '@google-cloud/translate';
 import { log } from './logger.js';
 import * as utils from '@ethgoose/utils';
-import { fileURLToPath, URL } from 'url';
+import { fileURLToPath, URL } from 'node:url';
 const { apiKey }:GooseConfig['translate'] = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../config/config.json', import.meta.url).toString()), 'utf-8')).translate;
 import validator from 'validator';
 import { ButtonInteraction, CommandInteraction, InteractionReplyOptions, Message, EmbedBuilder } from 'discord.js';

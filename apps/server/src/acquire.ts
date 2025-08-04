@@ -3,10 +3,10 @@
 //
 // SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
-import { Worker } from 'worker_threads';
-import crypto from 'crypto';
+import { Worker } from 'node:worker_threads';
+import crypto from 'node:crypto';
 import { log } from './logger.js';
-import { fileURLToPath, URL } from 'url';
+import { fileURLToPath, URL } from 'node:url';
 import Player from './player.js';
 
 const sleep = (ms:number) => new Promise((resolve) => setTimeout(resolve, ms));

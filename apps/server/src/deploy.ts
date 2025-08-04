@@ -2,11 +2,11 @@
 //
 // SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
-import fs from 'fs';
+import fs from 'node:fs';
 import { REST } from 'discord.js';
 import { Routes } from 'discord-api-types/v9';
 import { log } from './logger.js';
-import { fileURLToPath, URL } from 'url';
+import { fileURLToPath, URL } from 'node:url';
 const { client_id, guildId, token, scope }:GooseConfig['discord'] = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../config/config.json', import.meta.url).toString()), 'utf-8')).discord;
 const commands:object[] = [];
 const commandFiles = fs.readdirSync(fileURLToPath(new URL('./interactions/commands', import.meta.url).toString()), 'utf-8').filter(file => file.endsWith('.js'));

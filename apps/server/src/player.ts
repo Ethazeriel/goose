@@ -3,14 +3,14 @@
 //
 // SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
-import fs from 'fs';
+import fs from 'node:fs';
 import youtubedl from 'youtube-dl-exec';
 import { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayer, AudioPlayerStatus, AudioPlayerState, DiscordGatewayAdapterCreator, VoiceConnection, VoiceConnectionStatus } from '@discordjs/voice';
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 import { ButtonInteraction, CommandInteraction, BaseInteraction, GuildMember, AttachmentBuilder, VoiceChannel, Client, VoiceState, InteractionUpdateOptions, InteractionReplyOptions, Message, APIEmbed } from 'discord.js';
 import * as db from './database.js';
 import { log } from './logger.js';
-import { fileURLToPath, URL } from 'url';
+import { fileURLToPath, URL } from 'node:url';
 const { youtube, functions }:GooseConfig = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../config/config.json', import.meta.url).toString()), 'utf-8'));
 const useragent = youtube.useragent;
 import * as utils from '@ethgoose/utils';

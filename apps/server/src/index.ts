@@ -3,10 +3,10 @@
 //
 // SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
-import fs from 'fs';
-import crypto from 'crypto';
+import fs from 'node:fs';
+import crypto from 'node:crypto';
 import { Client, Collection, GatewayIntentBits, VoiceChannel } from 'discord.js';
-import { fileURLToPath, URL } from 'url';
+import { fileURLToPath, URL } from 'node:url';
 const { discord, internal, functions }:GooseConfig = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../config/config.json', import.meta.url).toString()), 'utf-8'));
 const token = discord.token;
 import { log, logCommand, logComponent } from './logger.js';

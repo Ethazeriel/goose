@@ -4,10 +4,10 @@
 
 import axios, { AxiosResponse } from 'axios';
 import * as db from '../../database.js';
-import fs from 'fs';
-import { fileURLToPath, URL } from 'url';
+import fs from 'node:fs';
+import { fileURLToPath, URL } from 'node:url';
 import { log } from '../../logger.js';
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 import chalk from 'chalk';
 const { lastfm, mongo }:GooseConfig = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../../../config/config.json', import.meta.url).toString()), 'utf-8'));
 const usercol = mongo.usercollection;

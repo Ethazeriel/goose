@@ -19,7 +19,7 @@
     "@discordjs/voice": "^0.18.0",
     "@ethgoose/utils": "^0.0.1",
     "@google-cloud/translate": "^8.5.0",
-    "axios": "^1.8.2",
+    "axios": "^1.12.0",
     "chalk": "^5.0.0",
     "cookie": "^1.0.0",
     "cookie-parser": "^1.4.7",

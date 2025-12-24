@@ -26,7 +26,7 @@ worker.on('error', code => {
   worker = new Worker(fileURLToPath(new URL('./workers/acquire.js', import.meta.url).toString()), { workerData:{ name:'Acquire' } });
 }); // ehh fuck it, probably better than just crashing I guess
 type fetchPromiseResult = { id:string, tracks?:Array<Track | string>, error?:string };
-export default async function fetch(search:string, id = crypto.randomBytes(5).toString('hex')):Promise<Track[]> {
+export default async function acquire(search:string, id = crypto.randomBytes(5).toString('hex')):Promise<Track[]> {
   if (slowMode) { await sleep(20000); }
   worker.postMessage({ action:'search', search:search, id:id });
   const promise:Promise<Track[]> = new Promise((resolve, reject) => {

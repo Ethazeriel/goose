@@ -6,7 +6,7 @@
 import { Worker } from 'node:worker_threads';
 import { log } from './logger.js';
 import Player from './player.js';
-import fetch from './acquire.js';
+import acquire from './acquire.js';
 import { toggleSlowMode } from './acquire.js';
 import { seekTime as seekRegex } from '@ethgoose/utils/regex';
 import validator from 'validator';
@@ -140,7 +140,7 @@ worker.on('message', async (message:WebWorkerMessage<ActionType>) => {
 
             let tracks: Track[] = [];
             try {
-              tracks = await fetch(query);
+              tracks = await acquire(query);
               if (tracks.length == 0) {
                 log.warn(`webparent queue—[${query}] resulted in 0 tracks; message was [${message.parameter}]`);
                 worker.postMessage({ id:message.id, error: `either ${query}\nis an empty playlist/ album, or we've fucked up` });
@@ -187,7 +187,7 @@ worker.on('message', async (message:WebWorkerMessage<ActionType>) => {
 
             let tracks: Track[] = [];
             try {
-              tracks = await fetch(query);
+              tracks = await acquire(query);
               if (tracks.length == 0) {
                 log.warn(`webparent queue—[${query}] resulted in 0 tracks; message was [${message.parameter}]`);
                 worker.postMessage({ id:message.id, error: `either ${query}\nis an empty playlist/ album, or we've fucked up` });

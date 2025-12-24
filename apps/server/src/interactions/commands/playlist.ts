@@ -9,7 +9,7 @@ import * as utils from '@ethgoose/utils';
 import { log } from '../../logger.js';
 import * as database from '../../database.js';
 import { sanitize, sanitizePlaylists } from '@ethgoose/utils/regex';
-import fetch from '../../acquire.js';
+import acquire from '../../acquire.js';
 import Workspace from '../../workspace.js';
 import validator from 'validator';
 import fs from 'node:fs';
@@ -99,7 +99,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
           if (index && (index != workspace.list.length)) {index--;}
         }// check if our index is non-zero and not the length of our songlist
 
-        tracks = await fetch(search, interaction.id);
+        tracks = await acquire(search, interaction.id);
         if (!tracks) {
           await interaction.followUp({ content: `No result for '${search}'. Either be more specific or directly link a spotify/youtube resource.`, ephemeral: true });
         }

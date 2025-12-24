@@ -8,7 +8,7 @@ import Player from '../../player.js';
 import * as utils from '../../utils.js';
 import { log } from '../../logger.js';
 import * as database from '../../database.js';
-import fetch from '../../acquire.js';
+import acquire from '../../acquire.js';
 import { youtubePattern, spotifyPattern, sanitize, sanitizePlaylists } from '@ethgoose/utils/regex';
 import fs from 'node:fs';
 import { fileURLToPath, URL } from 'node:url';
@@ -83,7 +83,7 @@ export async function execute(interaction:ChatInputCommandInteraction) {
     search.replace(sanitizePlaylists, '');
     getTracks = database.getPlaylist(search);
   } else { // external resources
-    getTracks = fetch(search, interaction.id);
+    getTracks = acquire(search, interaction.id);
     let queueEmbed;
     if (when === 'now' || when === 'next') {
       ({ UUID } = player.placeholderNext(interaction.user.username));

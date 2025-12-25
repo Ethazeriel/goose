@@ -10,7 +10,12 @@ import { fileURLToPath, URL } from 'node:url';
 const { apiKey }:GooseConfig['translate'] = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../config/config.json', import.meta.url).toString()), 'utf-8')).translate;
 import validator from 'validator';
 import { ButtonInteraction, CommandInteraction, InteractionReplyOptions, Message, EmbedBuilder } from 'discord.js';
-import { DetectResult } from '@google-cloud/translate/build/src/v2';
+
+interface DetectResult {
+    language: string;
+    confidence: number;
+    input: string;
+} // copied from '@google-cloud/translate/build/src/v2' because TS has a hard time finding this after the meta reorg
 
 export default class Translator {
   // types

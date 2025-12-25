@@ -9,6 +9,7 @@ import { TrackSmall, DraggedTrack } from './TrackSmall';
 import { StatusBar } from './StatusBar';
 import styled, { css } from 'styled-components';
 import DisplaySelect from './DisplaySelect';
+import { SpaceHolder } from './common';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { DropCheck } from './DropCheck';
 
@@ -364,7 +365,7 @@ function PlayerQueue(props: { playerClick:(action:PlayerAction<ActionType>) => v
   };
 
   return (
-    <TrackContainer style={{ display: 'flex', flexDirection: 'column' }}>
+    <TrackContainer>
       <SpaceHolder />
       <div>
         <DragBackground visible={state.visible} x={state.dragX} y={state.dragY}>
@@ -384,14 +385,7 @@ const TrackContainer = styled.div`
   display: flex;
   flex-direction: column;
 `;
-const SpaceHolder = styled.div`
-flex-shrink:0;
-width: 100%;
-height: calc(6vh + 3px);
-min-height: 20px;
-max-height: 82px;
-background-color: #626569;
-`;
+
 function ErrorDisplay(props: { error: null | string }) {
   if (props.error) {
     return <div className="Error">{props.error}</div>;

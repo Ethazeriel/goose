@@ -5,12 +5,12 @@
 
 import Player from '../../player.js';
 import { log } from '../../logger.js';
-import { InteractionDeferUpdateOptions, ButtonInteraction, InteractionEditReplyOptions } from 'discord.js';
+import { InteractionDeferUpdateOptions, ButtonInteraction, InteractionEditReplyOptions, MessageFlags } from 'discord.js';
 
 export const name = 'media';
 
 export async function execute(interaction:ButtonInteraction, which:string):Promise<void> {
-  (which === 'showqueue') ? await interaction.deferReply({ ephemeral: true }) : await interaction.deferUpdate({ ephemeral: true } as InteractionDeferUpdateOptions);
+  (which === 'showqueue') ? await interaction.deferReply({ flags: MessageFlags.Ephemeral }) : await interaction.deferUpdate({ flags: MessageFlags.Ephemeral } as InteractionDeferUpdateOptions);
 
   const { player, message } = await Player.getPlayer(interaction);
   if (player) {

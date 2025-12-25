@@ -5,10 +5,10 @@ SPDX-FileCopyrightText: Whuppee
 SPDX-License-Identifier: CC-BY-NC-SA-4.0
 */
 
-html, body{min-height:100%;} /* might do nothing, where 100vh would. but has maybe other problems. see comment in App.css. todo: fix on semantic html compliance pass */
+html, body{height:100vh;} /* might do nothing, where 100vh would. but has maybe other problems. see comment in App.css. todo: fix on semantic html compliance pass */
 body {
   margin: 0;
-  height:100%;
+  height:100vh;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;

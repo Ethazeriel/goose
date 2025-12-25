@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
 import { log } from '../../logger.js';
-import axios, { AxiosResponse } from 'axios';
 import spotifyAcquire from '../acquire/spotify.js';
 
 
@@ -14,18 +13,14 @@ export async function userPlaylists(token:string, id:string):Promise<Array<Spoti
   let offset = 0;
   let total = 0;
   do {
-    const spotifyResultAxios:void | AxiosResponse<SpotifyApi.ListOfCurrentUsersPlaylistsResponse> = await axios({
-      url: `https://api.spotify.com/v1/me/playlists?limit=${limit}&offset=${offset}`,
-      method: 'get',
+    const spotifyResultStream:Response = await fetch(`https://api.spotify.com/v1/me/playlists?limit=${limit}&offset=${offset}`, {
+      method: 'GET',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
         Authorization: `Bearer ${token}`,
       },
-    }).catch(error => {
-      log.error(error);
-      return;
     });
-    const spotifyResult = spotifyResultAxios!.data;
+    const spotifyResult = (await (spotifyResultStream.json() as Promise<SpotifyApi.ListOfCurrentUsersPlaylistsResponse>));
     total = spotifyResult.total;
     offset = offset + limit;
     playlistList.push(...spotifyResult.items);

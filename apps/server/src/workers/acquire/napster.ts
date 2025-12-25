@@ -5,21 +5,19 @@
 import fs from 'node:fs';
 import { fileURLToPath, URL } from 'node:url';
 import { log } from '../../logger.js';
-import axios, { AxiosResponse } from 'axios';
 const { napster }:GooseConfig = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../../../config/config.json', import.meta.url).toString()), 'utf-8'));
 
 async function fromTrack(id:string):Promise<TrackSource> {
   log.info(`napsterFromTrack: ${id}`);
-  const napsterResultAxios:AxiosResponse<NapsterTrackResult> = await axios({
-    url: `http://api.napster.com/v2.2/tracks/${id}?apikey=${napster.client_id}`,
-    method: 'get',
+  const napsterResultStream:Response = await fetch(`http://api.napster.com/v2.2/tracks/${id}?apikey=${napster.client_id}`, {
+    method: 'GET',
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/x-www-form-urlencoded',
     },
-    timeout: 10000,
+    signal: AbortSignal.timeout(10000),
   });
-  const napsterResult = napsterResultAxios.data;
+  const napsterResult = (await (napsterResultStream.json() as Promise<NapsterTrackResult>));
   // at this point we should have a result, now construct the TrackSource
   const source:TrackSource = {
     id: Array(napsterResult.tracks[0].id),
@@ -42,16 +40,15 @@ async function fromTrack(id:string):Promise<TrackSource> {
 
 async function fromAlbum(id:string):Promise<Array<TrackSource>> {
   log.info(`napsterFromAlbum: ${id}`);
-  const napsterResultAxios:AxiosResponse<NapsterTrackResult> = await axios({
-    url: `https://api.napster.com/v2.2/albums/${id}/tracks?apikey=${napster.client_id}`,
-    method: 'get',
+  const napsterResultStream:Response = await fetch(`https://api.napster.com/v2.2/albums/${id}/tracks?apikey=${napster.client_id}`, {
+    method: 'GET',
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/x-www-form-urlencoded',
     },
-    timeout: 10000,
+    signal: AbortSignal.timeout(10000),
   });
-  const napsterResult = napsterResultAxios.data;
+  const napsterResult = (await (napsterResultStream.json() as Promise<NapsterTrackResult>));
   const sources:Array<TrackSource> = [];
   for (const track of napsterResult.tracks) {
     sources.push({
@@ -81,16 +78,15 @@ async function fromPlaylist(id:string):Promise<Array<TrackSource>> {
   let offset = 0;
   let total = 0;
   do {
-    const napsterResultAxios:AxiosResponse<NapsterPlaylistTracksResult> = await axios({
-      url: `https://api.napster.com/v2.2/playlists/${id}/tracks?apikey=${napster.client_id}&limit=${limit}&offset=${offset}`,
-      method: 'get',
+    const napsterResultStream:Response = await fetch(`https://api.napster.com/v2.2/playlists/${id}/tracks?apikey=${napster.client_id}&limit=${limit}&offset=${offset}`, {
+      method: 'GET',
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      timeout: 10000,
+      signal: AbortSignal.timeout(10000),
     });
-    const napsterResult = napsterResultAxios.data;
+    const napsterResult = (await (napsterResultStream.json() as Promise<NapsterPlaylistTracksResult>));
     total = napsterResult.meta.totalCount;
     napsterTracks.push(...napsterResult.tracks);
     offset = offset + limit;
@@ -119,16 +115,15 @@ async function fromPlaylist(id:string):Promise<Array<TrackSource>> {
 
 async function fromText(search:string):Promise<TrackSource> {
   log.info(`napsterFromText: ${search}`);
-  const napsterResultAxios:AxiosResponse<NapsterSearchResult> = await axios({
-    url: `http://api.napster.com/v2.2/search?query=${search}&type=track&per_type_limit=1&apikey=${napster.client_id}`,
-    method: 'get',
+  const napsterResultStream:Response = await fetch(`http://api.napster.com/v2.2/search?query=${search}&type=track&per_type_limit=1&apikey=${napster.client_id}`, {
+    method: 'GET',
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/x-www-form-urlencoded',
     },
-    timeout: 10000,
+    signal: AbortSignal.timeout(10000),
   });
-  const napsterResult = napsterResultAxios.data;
+  const napsterResult = (await (napsterResultStream.json() as Promise<NapsterSearchResult>));
 
   const source:TrackSource = {
     id: Array(napsterResult.search.data.tracks[0].id),

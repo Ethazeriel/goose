@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
-import axios, { AxiosResponse } from 'axios';
+
 import * as db from '../../database.js';
 import fs from 'node:fs';
 import { fileURLToPath, URL } from 'node:url';
@@ -24,18 +24,14 @@ type LastFMTokenResponse = {
 export async function auth(token:string, webClientId:string) {
 
   const apiSig = crypto.createHash('md5').update(`api_key${lastfm.client_id}methodauth.getSessiontoken${token}${lastfm.client_secret}`).digest('hex');
-  const AxToken:void | AxiosResponse<LastFMTokenResponse> = await axios({
-    url: `http://ws.audioscrobbler.com/2.0/?method=auth.getSession&api_key=${lastfm.client_id}&token=${token}&format=json&api_sig=${apiSig}`,
-    method: 'get',
+  const AxToken:Response = await fetch(`http://ws.audioscrobbler.com/2.0/?method=auth.getSession&api_key=${lastfm.client_id}&token=${token}&format=json&api_sig=${apiSig}`, {
+    method: 'GET',
     headers: { 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
-    timeout: 10000,
-  }).catch(error => {
-    log.error(error);
-    return;
+    signal: AbortSignal.timeout(10000),
   });
 
-  if (AxToken?.data) {
-    const fmresult = AxToken.data;
+  if (AxToken.ok) {
+    const fmresult = (await (AxToken.json() as Promise<LastFMTokenResponse>));
     log.trace('successful auth - saving to db');
     await saveToken(fmresult, webClientId);
     await updateUser(fmresult, webClientId);

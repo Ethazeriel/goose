@@ -6,7 +6,6 @@ import fs from 'node:fs';
 import { fileURLToPath, URL } from 'node:url';
 import { log } from '../../logger.js';
 import ytdl from 'ytdl-core';
-import axios, { AxiosResponse } from 'axios';
 const { youtube }:GooseConfig = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../../../config/config.json', import.meta.url).toString()), 'utf-8'));
 
 async function fromId(id:string):Promise<TrackYoutubeSource> {
@@ -28,16 +27,15 @@ async function fromId(id:string):Promise<TrackYoutubeSource> {
 
 async function fromSearch(search:string):Promise<Array<TrackYoutubeSource>> {
   log.info(`youtubeFromSearch: ${search}`);
-  const youtubeResultAxios:AxiosResponse<YoutubeSearchResponse> = await axios({
-    url: 'https://youtube.googleapis.com/youtube/v3/search?q=' + search + '&type=video&part=id%2Csnippet&fields%3Ditems%28id%2FvideoId%2Csnippet%28title%2Cthumbnails%29%29&maxResults=5&safeSearch=none&key=' + youtube.apiKey,
-    method: 'get',
+  const youtubeResultStream:Response = await fetch(`https://youtube.googleapis.com/youtube/v3/search?q=${search}&type=video&part=id%2Csnippet&fields%3Ditems%28id%2FvideoId%2Csnippet%28title%2Cthumbnails%29%29&maxResults=5&safeSearch=none&key=${youtube.apiKey}`, {
+    method: 'GET',
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/x-www-form-urlencoded',
     },
-    timeout: 10000,
+    signal: AbortSignal.timeout(10000),
   });
-  const youtubeResults = youtubeResultAxios.data.items;
+  const youtubeResults = (await (youtubeResultStream.json() as Promise<YoutubeSearchResponse>)).items;
   const ytPromiseArray:Array<Promise<TrackYoutubeSource>> = [];
   for (const item of youtubeResults) {
     const ytSource = fromId(item.id.videoId);
@@ -58,17 +56,17 @@ async function fromPlaylist(id:string):Promise<Array<TrackYoutubeSource>> {
   let pageToken = undefined;
   const youtubeResults:Array<YoutubePlaylistItem> = [];
   do {
-    const youtubeResultAxios:AxiosResponse<YoutubePlaylistResponse> = await axios({
-      url: `https://youtube.googleapis.com/youtube/v3/playlistItems?playlistId=${id}&part=snippet%2CcontentDetails&maxResults=50&key=${youtube.apiKey}${pageToken ? '&pageToken=' + pageToken : ''}`,
-      method: 'get',
+    const youtubeResultStream:Response = await fetch(`https://youtube.googleapis.com/youtube/v3/playlistItems?playlistId=${id}&part=snippet%2CcontentDetails&maxResults=50&key=${youtube.apiKey}${pageToken ? '&pageToken=' + pageToken : ''}`, {
+      method: 'GET',
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      timeout: 10000,
+      signal: AbortSignal.timeout(10000),
     });
-    pageToken = youtubeResultAxios.data.nextPageToken;
-    youtubeResults.push(...youtubeResultAxios.data.items);
+    const ytResult = (await (youtubeResultStream.json() as Promise<YoutubePlaylistResponse>));
+    pageToken = ytResult.nextPageToken;
+    youtubeResults.push(...ytResult.items);
   } while (pageToken);
   log.trace(`Retrieved ${youtubeResults.length} tracks. Running ytdl...`);
   const ytPromiseArray:Array<Promise<TrackYoutubeSource>> = [];

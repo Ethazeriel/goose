@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
 import * as db from './database.js';
-import axios, { AxiosResponse } from 'axios';
 import { log } from './logger.js';
 import fs from 'node:fs';
 import { fileURLToPath, URL } from 'node:url';
@@ -47,19 +46,14 @@ export async function flow(type:'discord' | 'spotify' | 'napster', code:string, 
     default: { return false; }
   }
 
-  const AxToken:void | AxiosResponse<AccessTokenResponse> = await axios({
-    url: tokenconfig.url,
-    method: 'post',
+  const AxToken:Response = await fetch(tokenconfig.url, {
+    method: 'POST',
     headers: tokenconfig.headers,
-    data: tokenconfig.data,
-    timeout: 10000,
-  }).catch(error => {
-    log.error(error);
-    return;
+    body: tokenconfig.data,
+    signal: AbortSignal.timeout(10000),
   });
-
-  if (AxToken?.data) {
-    const token = AxToken.data;
+  if (AxToken.ok) {
+    const token = (await (AxToken.json() as Promise<AccessTokenResponse>));
     log.trace('successful auth - getting user data');
 
     let userconfig;
@@ -69,20 +63,16 @@ export async function flow(type:'discord' | 'spotify' | 'napster', code:string, 
       case 'napster': { userconfig = { url: 'https://api.napster.com/v2.2/me/account' }; break;}
       default: { return false; }
     }
-    const AxUser:void | AxiosResponse<any> = await axios({
-      url: userconfig.url,
-      method: 'get',
+    const AxUser:Response = await fetch(userconfig.url, {
+      method: 'GET',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
         Authorization: `Bearer ${token.access_token}`,
       },
-    }).catch(error => {
-      log.error(error);
-      return;
     });
 
-    if (AxUser?.data) {
-      const user = AxUser.data;
+    if (AxUser.ok) {
+      const user = (await (AxUser.json() as Promise<any>));
       log.trace('got user data, saving to db');
 
       switch (type) {
@@ -174,18 +164,14 @@ async function updateToken(user:User, type:'discord' | 'spotify' | 'napster' | '
           break;}
       }
 
-      const newtoken:void | AxiosResponse<AccessTokenResponse> = await axios({
-        url: tokenconfig.url,
-        method: 'post',
+      const newtoken:Response = await fetch(tokenconfig.url, {
+        method: 'POST',
         headers: tokenconfig.headers,
-        data: tokenconfig.data,
-        timeout: 10000,
-      }).catch(error => {
-        log.error(error);
-        return;
+        body: tokenconfig.data,
+        signal: AbortSignal.timeout(10000),
       });
-      if (newtoken?.data) {
-        const tokendata = newtoken.data;
+      if (newtoken.ok) {
+        const tokendata = (await (newtoken.json() as Promise<AccessTokenResponse>));
         const token = {
           access:tokendata.access_token,
           renew:(type === 'spotify') ? user.tokens.spotify!.renew : tokendata.refresh_token, // spotify doesn't give us new refresh tokens

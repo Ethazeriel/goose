@@ -6,7 +6,6 @@ import { AttachmentBuilder, ChatInputCommandInteraction, InteractionEditReplyOpt
 import { log } from './logger.js';
 // import Canvas from 'canvas';
 import { Jimp } from 'jimp';
-import axios, { AxiosResponse } from 'axios';
 import * as db from './database.js';
 import type { IArtist, IArtistList } from 'musicbrainz-api';
 import { pickPride, chooseAudioSource } from '@ethgoose/utils';
@@ -62,22 +61,22 @@ export async function mbArtistLookup(artist:string):Promise<string | undefined> 
   // check for Artist.official in db before sending lookup
   const track = await db.getTrack({ $and:[{ 'goose.artist.official':{ $type:'string' } }, { 'goose.artist.name':artist }] });
   if (track) { return track.goose.artist.official; } else {
-    const axData1:null | AxiosResponse<IArtistList> = await axios(`https://musicbrainz.org/ws/2/artist?query=${encodeURIComponent(artist)}&limit=1&offset=0&fmt=json`).catch(error => {
+    const axData1:null | Response = await fetch(`https://musicbrainz.org/ws/2/artist?query=${encodeURIComponent(artist)}&limit=1&offset=0&fmt=json`).catch(error => {
       // log.error({ err:error }, `MB artist search fail - headers: ${JSON.stringify(error.response?.headers, null, 2)}`);
       log.error(`MB artist lookup fail - code: ${error.code}`);
       return (null);
     });
     if (axData1) {
-      const firstdata = axData1.data;
+      const firstdata = (await (axData1.json() as Promise<IArtistList>));
       if (firstdata?.artists?.length) {
         const mbid = firstdata.artists[0].id;
-        const axData2:null | AxiosResponse<IArtist> = await axios(`https://musicbrainz.org/ws/2/artist/${mbid}?inc=url-rels`).catch(error => {
+        const axData2:null | Response = await fetch(`https://musicbrainz.org/ws/2/artist/${mbid}?inc=url-rels`).catch(error => {
           // log.error({ err:error }, `MB artist lookup fail - headers: ${JSON.stringify(error.response?.headers, null, 2)}`);
           log.error(`MB artist lookup fail - code: ${error.code}`);
           return (null);
         });
         if (axData2) {
-          const data = axData2.data;
+          const data = (await (axData2.json() as Promise<IArtist>));
           if (data?.relations?.length) {
             let result = null;
             for (const link of data.relations) { // return the official site first

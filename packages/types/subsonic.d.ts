@@ -7,7 +7,7 @@
 // even if they're correct, they're mostly too broad to be useful
 
 type SubsonicAlbumResponse = {
-  "subsonic-response": {
+  'subsonic-response': {
     status: string,
     version: string,
     type: string,
@@ -18,7 +18,7 @@ type SubsonicAlbumResponse = {
 }
 
 type SubsonicSongResponse = {
-  "subsonic-response": {
+  'subsonic-response': {
     status: string,
     version: string,
     type: string,
@@ -29,7 +29,7 @@ type SubsonicSongResponse = {
 }
 
 type SubsonicPlaylistResponse = {
-  "subsonic-response": {
+  'subsonic-response': {
     status: string,
     version: string,
     type: string,
@@ -40,7 +40,7 @@ type SubsonicPlaylistResponse = {
 }
 
 type SubsonicSearchResponse = {
-  "subsonic-response": {
+  'subsonic-response': {
     status: string,
     version: string,
     type: string,
@@ -98,7 +98,7 @@ type SubsonicSong = {
   created: string, // datetime, when added to subsonic server
   albumId: string,
   artistId: string,
-  type: "music", // strictly speaking could be something else, but we won't support that
+  type: 'music', // strictly speaking could be something else, but we won't support that
   isVideo: boolean,
   bpm: number,
   comment: string,

@@ -5,38 +5,36 @@
 import fs from 'node:fs';
 import { fileURLToPath, URL } from 'node:url';
 import { log } from '../../logger.js';
-import axios, { AxiosResponse } from 'axios';
 const { spotify }:GooseConfig = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../../../config/config.json', import.meta.url).toString()), 'utf-8'));
 
 async function getCreds():Promise<ClientCredentialsResponse> {
   log.debug('getting spotify token');
-  const spotifyCredentialsAxios:AxiosResponse<ClientCredentialsResponse> = await axios({
-    url: 'https://accounts.spotify.com/api/token',
-    method: 'post',
+  const spotifyCredentialsStream:Response = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/x-www-form-urlencoded',
       'Authorization': 'Basic ' + (Buffer.from(spotify.client_id + ':' + spotify.client_secret).toString('base64')),
     },
-    data: 'grant_type=client_credentials',
-    timeout: 10000,
+    body: 'grant_type=client_credentials',
+    signal: AbortSignal.timeout(10000),
   });
-  return spotifyCredentialsAxios.data;
+  const result = await spotifyCredentialsStream.json() as Promise<ClientCredentialsResponse>;
+  return result;
 }
 
 async function fromTrack(auth:ClientCredentialsResponse, id:string):Promise<TrackSource> {
   log.info(`spotifyFromTrack: ${id}`);
-  const spotifyResultAxios:AxiosResponse<SpotifyApi.SingleTrackResponse> = await axios({
-    url: `https://api.spotify.com/v1/tracks/${id}`,
-    method: 'get',
+  const spotifyResultStream:Response = await fetch(`https://api.spotify.com/v1/tracks/${id}`, {
+    method: 'GET',
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/x-www-form-urlencoded',
       'Authorization': 'Bearer ' + auth.access_token,
     },
-    timeout: 10000,
+    signal: AbortSignal.timeout(10000),
   });
-  const spotifyResult = spotifyResultAxios.data;
+  const spotifyResult = (await (spotifyResultStream.json() as Promise<SpotifyApi.SingleTrackResponse>));
   // at this point we should have a result, now construct the TrackSource
   const source:TrackSource = {
     id: Array(spotifyResult.id),
@@ -59,17 +57,16 @@ async function fromTrack(auth:ClientCredentialsResponse, id:string):Promise<Trac
 
 async function fromText(auth:ClientCredentialsResponse, search:string):Promise<TrackSource | null> {
   log.info(`spotifyFromText: ${search}`);
-  const spotifyResultAxios:AxiosResponse<SpotifyApi.TrackSearchResponse> = await axios({
-    url: `https://api.spotify.com/v1/search?type=track&limit=1&q=${search}`,
-    method: 'get',
+  const spotifyResultStream:Response = await fetch(`https://api.spotify.com/v1/search?type=track&limit=1&q=${search}`, {
+    method: 'GET',
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/x-www-form-urlencoded',
       'Authorization': 'Bearer ' + auth.access_token,
     },
-    timeout: 10000,
+    signal: AbortSignal.timeout(10000),
   });
-  const spotifyResult = spotifyResultAxios.data;
+  const spotifyResult = (await (spotifyResultStream.json() as Promise<SpotifyApi.TrackSearchResponse>));
   if (!spotifyResult.tracks.items[0]) { return null; }
   // at this point we should have a result, now construct the TrackSource
   const source:TrackSource = {
@@ -93,17 +90,16 @@ async function fromText(auth:ClientCredentialsResponse, search:string):Promise<T
 
 async function fromAlbum(auth:ClientCredentialsResponse, id:string):Promise<Array<TrackSource>> {
   log.info(`spotifyFromAlbum: ${id}`);
-  const spotifyResultAxios:AxiosResponse<SpotifyApi.SingleAlbumResponse> = await axios({
-    url: `https://api.spotify.com/v1/albums/${id}`,
-    method: 'get',
+  const spotifyResultStream:Response = await fetch(`https://api.spotify.com/v1/albums/${id}`, {
+    method: 'GET',
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/x-www-form-urlencoded',
       'Authorization': 'Bearer ' + auth.access_token,
     },
-    timeout: 10000,
+    signal: AbortSignal.timeout(10000),
   });
-  const spotifyResult = spotifyResultAxios.data;
+  const spotifyResult = (await (spotifyResultStream.json() as Promise<SpotifyApi.SingleAlbumResponse>));
   const sources:Array<TrackSource> = [];
   for (const track of spotifyResult.tracks.items) {
     sources.push({
@@ -133,17 +129,16 @@ async function fromPlaylist(auth:ClientCredentialsResponse, id:string):Promise<A
   let offset = 0;
   let total = 0;
   do {
-    const spotifyResultAxios:AxiosResponse<SpotifyApi.PlaylistTrackResponse> = await axios({
-      url: `https://api.spotify.com/v1/playlists/${id}/tracks?fields=items(track(album(id,name,images),artists(id,name),track_number,id,name,href,duration_ms)),total,limit,offset&offset=${offset}&limit=${limit}`,
+    const spotifyResultStream:Response = await fetch(`https://api.spotify.com/v1/playlists/${id}/tracks?fields=items(track(album(id,name,images),artists(id,name),track_number,id,name,href,duration_ms)),total,limit,offset&offset=${offset}&limit=${limit}`, {
       method: 'get',
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/x-www-form-urlencoded',
         'Authorization': 'Bearer ' + auth.access_token,
       },
-      timeout: 10000,
+      signal: AbortSignal.timeout(10000),
     });
-    const spotifyResult = spotifyResultAxios!.data;
+    const spotifyResult = (await (spotifyResultStream.json() as Promise<SpotifyApi.PlaylistTrackResponse>));
     total = spotifyResult.total;
     spotifyTracks.push(...spotifyResult.items);
     offset = offset + limit;

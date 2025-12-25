@@ -6,7 +6,6 @@ import fs from 'node:fs';
 import { fileURLToPath, URL } from 'node:url';
 import crypto from 'node:crypto';
 import { log } from '../../logger.js';
-import axios, { AxiosResponse } from 'axios';
 import stream from 'node:stream';
 const { subsonic, root_url }:GooseConfig = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../../../config/config.json', import.meta.url).toString()), 'utf-8'));
 
@@ -19,17 +18,16 @@ async function fromTrack(id:string):Promise<TrackSource> {
   log.info(`subsonicFromTrack: ${id}`);
   const salt = crypto.randomBytes(10).toString('hex');
   const hash = crypto.createHash('md5').update(`${subsonic.password}${salt}`).digest('hex');
-  const subsonicResultAxios:AxiosResponse<SubsonicSongResponse> = await axios({
-    url: `${subsonic.endpoint_uri}/rest/getSong?id=${id}&u=${subsonic.username}&s=${salt}&t=${hash}&c=${subsonic.client_id}&f=json&v=1.16.1`,
-    method: 'get',
+  const subsonicResultStream:Response = await fetch(`${subsonic.endpoint_uri}/rest/getSong?id=${id}&u=${subsonic.username}&s=${salt}&t=${hash}&c=${subsonic.client_id}&f=json&v=1.16.1`, {
+    method: 'GET',
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/x-www-form-urlencoded',
     },
-    timeout: 10000,
+    signal: AbortSignal.timeout(10000),
   });
-  const subsonicResult = subsonicResultAxios.data['subsonic-response'];
-  // TODO: consult the result field to confirm we got an ok, not an error
+  const subsonicResult = (await (subsonicResultStream.json() as Promise<SubsonicSongResponse>))['subsonic-response'];
+  // TODO: before we .json() it we should check for response.ok to confirm we got a good return
   const source:TrackSource = {
     id: Array(subsonicResult.song.id),
     name: subsonicResult.song.title,
@@ -53,16 +51,15 @@ async function fromAlbum(id:string):Promise<Array<TrackSource>> {
   log.info(`subsonicFromAlbum: ${id}`);
   const salt = crypto.randomBytes(10).toString('hex');
   const hash = crypto.createHash('md5').update(`${subsonic.password}${salt}`).digest('hex');
-  const subsonicResultAxios:AxiosResponse<SubsonicAlbumResponse> = await axios({
-    url: `${subsonic.endpoint_uri}/rest/getAlbum?id=${id}&u=${subsonic.username}&s=${salt}&t=${hash}&c=${subsonic.client_id}&f=json&v=1.16.1`,
-    method: 'get',
+  const subsonicResultStream:Response = await fetch(`${subsonic.endpoint_uri}/rest/getAlbum?id=${id}&u=${subsonic.username}&s=${salt}&t=${hash}&c=${subsonic.client_id}&f=json&v=1.16.1`, {
+    method: 'GET',
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/x-www-form-urlencoded',
     },
-    timeout: 10000,
+    signal: AbortSignal.timeout(10000),
   });
-  const subsonicResult = subsonicResultAxios.data['subsonic-response'];
+  const subsonicResult = (await (subsonicResultStream.json() as Promise<SubsonicAlbumResponse>))['subsonic-response'];
   const sources:Array<TrackSource> = [];
   for (const song of subsonicResult.album.song) {
     sources.push({
@@ -89,16 +86,15 @@ async function fromPlaylist(id:string):Promise<Array<TrackSource>> {
   log.info(`subsonicFromPlaylist: ${id}`);
   const salt = crypto.randomBytes(10).toString('hex');
   const hash = crypto.createHash('md5').update(`${subsonic.password}${salt}`).digest('hex');
-  const subsonicResultAxios:AxiosResponse<SubsonicPlaylistResponse> = await axios({
-    url: `${subsonic.endpoint_uri}/rest/getPlaylist?id=${id}&u=${subsonic.username}&s=${salt}&t=${hash}&c=${subsonic.client_id}&f=json&v=1.16.1`,
-    method: 'get',
+  const subsonicResultStream:Response = await fetch(`${subsonic.endpoint_uri}/rest/getPlaylist?id=${id}&u=${subsonic.username}&s=${salt}&t=${hash}&c=${subsonic.client_id}&f=json&v=1.16.1`, {
+    method: 'GET',
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/x-www-form-urlencoded',
     },
-    timeout: 10000,
+    signal: AbortSignal.timeout(10000),
   });
-  const subsonicResult = subsonicResultAxios.data['subsonic-response'];
+  const subsonicResult = (await (subsonicResultStream.json() as Promise<SubsonicPlaylistResponse>))['subsonic-response'];
   const sources:Array<TrackSource> = [];
   for (const song of subsonicResult.playlist.entry) {
     sources.push({
@@ -125,16 +121,15 @@ async function fromText(search:string):Promise<TrackSource | null> {
   log.info(`subsonicFromText: ${search}`);
   const salt = crypto.randomBytes(10).toString('hex');
   const hash = crypto.createHash('md5').update(`${subsonic.password}${salt}`).digest('hex');
-  const subsonicResultAxios:AxiosResponse<SubsonicSearchResponse> = await axios({
-    url: `${subsonic.endpoint_uri}/rest/search2?query=${search}&artistCount=0&albumCount=0&songCount=5&u=${subsonic.username}&s=${salt}&t=${hash}&c=${subsonic.client_id}&f=json&v=1.16.1`,
-    method: 'get',
+  const subsonicResultStream:Response = await fetch(`${subsonic.endpoint_uri}/rest/search2?query=${search}&artistCount=0&albumCount=0&songCount=5&u=${subsonic.username}&s=${salt}&t=${hash}&c=${subsonic.client_id}&f=json&v=1.16.1`, {
+    method: 'GET',
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/x-www-form-urlencoded',
     },
-    timeout: 10000,
+    signal: AbortSignal.timeout(10000),
   });
-  const subsonicResult = subsonicResultAxios.data['subsonic-response'];
+  const subsonicResult = (await (subsonicResultStream.json() as Promise<SubsonicSearchResponse>))['subsonic-response'];
   if (Object.keys(subsonicResult.searchResult2).length === 0) { return null; }
   const source:TrackSource = {
     id: Array(subsonicResult.searchResult2.song[0].id),
@@ -174,7 +169,7 @@ async function getStream(id:string, offset:number = 0):Promise<stream.Readable |
   }
 }
 
-async function getArtPath(id:string) {
+async function getArtPath(id:string) { // TODO: webserver just proxies this. should examine to make sure we're not leaking creds, I don't remember quite how that looks
   const salt = crypto.randomBytes(10).toString('hex');
   const hash = crypto.createHash('md5').update(`${subsonic.password}${salt}`).digest('hex');
   const path = `/rest/getCoverArt?id=${id}&size=300&u=${subsonic.username}&s=${salt}&t=${hash}&c=${subsonic.client_id}&v=1.16.1`;

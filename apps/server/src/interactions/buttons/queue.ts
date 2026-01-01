@@ -6,12 +6,12 @@
 import { embedPage } from '@ethgoose/utils/regex';
 import Player from '../../player.js';
 import { log } from '../../logger.js';
-import { ButtonInteraction, InteractionDeferUpdateOptions, InteractionEditReplyOptions } from 'discord.js';
+import { ButtonInteraction, InteractionDeferUpdateOptions, InteractionEditReplyOptions, MessageFlags } from 'discord.js';
 
 export const name = 'queue';
 
 export async function execute(interaction:ButtonInteraction, which:string) {
-  (which === 'showmedia') ? await interaction.deferReply({ ephemeral: true }) : await interaction.deferUpdate({ ephemeral: true } as InteractionDeferUpdateOptions);
+  (which === 'showmedia') ? await interaction.deferReply({ flags: MessageFlags.Ephemeral }) : await interaction.deferUpdate({ flags: MessageFlags.Ephemeral } as InteractionDeferUpdateOptions);
   const { player, message } = await Player.getPlayer(interaction);
   if (player) {
     if (player.getQueue().length) {

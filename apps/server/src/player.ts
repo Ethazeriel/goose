@@ -710,6 +710,8 @@ export default class Player {
 
   // embeds
   async mediaEmbed(fresh = true, messageTitle = 'Current Track:'):Promise<InteractionReplyOptions> {
+    // future-me troubleshooting note - http failures retrieving the image on discords side can manifest as "TypeError: fetch failed" on attempting to create embed (actually after embed is sent to discord)
+    // specifically the attachment is the issue. thumbnail fails gracefully
     const thumb = fresh ? (new AttachmentBuilder(utils.pickPride('dab') as string, { name:'art.jpg' })) : null;
     const track = this.getCurrent();
     const bar = {

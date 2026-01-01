@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
 import { SlashCommandBuilder } from '@discordjs/builders';
-import type { ChatInputCommandInteraction, InteractionUpdateOptions, InteractionEditReplyOptions } from 'discord.js';
+import { type ChatInputCommandInteraction, type InteractionUpdateOptions, type InteractionEditReplyOptions, MessageFlags } from 'discord.js';
 import * as utils from '@ethgoose/utils';
 
 
@@ -24,7 +24,7 @@ export const data = new SlashCommandBuilder()
         { name:'Admin command', value:'admin' }));
 
 export async function execute(interaction:ChatInputCommandInteraction) {
-  await interaction.deferReply({ ephemeral: true });
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
   const which = interaction.options.getString('section') || 'index';
   const response = helpEmbed(which);
   await interaction.editReply(response as InteractionEditReplyOptions);

@@ -5,12 +5,12 @@
 
 import { embedPage } from '@ethgoose/utils/regex';
 import Workspace from '../../workspace.js';
-import { ButtonInteraction, GuildMember, InteractionDeferUpdateOptions, InteractionEditReplyOptions, InteractionReplyOptions } from 'discord.js';
+import { ButtonInteraction, GuildMember, InteractionDeferUpdateOptions, InteractionEditReplyOptions, InteractionReplyOptions, MessageFlags } from 'discord.js';
 
 export const name = 'list';
 
 export async function execute(interaction:ButtonInteraction, which:string):Promise<void> {
-  await interaction.deferUpdate({ ephemeral: true } as InteractionDeferUpdateOptions);
+  await interaction.deferUpdate({ flags: MessageFlags.Ephemeral } as InteractionDeferUpdateOptions);
   const workspace = Workspace.getWorkspace((interaction.member as GuildMember).user.id);
   let match = interaction.message.embeds[0].fields?.[0]?.value?.match(embedPage);
   if (!match) { match = ['0', '1']; }

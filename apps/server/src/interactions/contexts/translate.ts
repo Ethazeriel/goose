@@ -8,7 +8,7 @@ import Translator from '../../translate.js';
 import validator from 'validator';
 import fs from 'node:fs';
 import { fileURLToPath, URL } from 'node:url';
-import type { GuildMember, GuildMemberRoleManager, MessageContextMenuCommandInteraction } from 'discord.js';
+import { MessageFlags, type GuildMember, type GuildMemberRoleManager, type MessageContextMenuCommandInteraction } from 'discord.js';
 const { discord }:GooseConfig = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../../../config/config.json', import.meta.url).toString()), 'utf-8'));
 const roles = discord.roles;
 
@@ -18,7 +18,7 @@ export const data = new ContextMenuCommandBuilder()
 
 export async function execute(interaction:MessageContextMenuCommandInteraction) {
   if ((interaction.member?.roles as GuildMemberRoleManager)?.cache?.some(role => role.name === roles.translate)) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     const user = await db.getUser(interaction.user.id);
     if (user!.discord?.locale) {
       const translation = await Translator.translate(validator.escape(validator.stripLow(interaction.targetMessage.content || '')).trim(), user!.discord.locale);

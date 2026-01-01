@@ -12,7 +12,7 @@ import acquire from '../../acquire.js';
 import { youtubePattern, spotifyPattern, sanitize, sanitizePlaylists } from '@ethgoose/utils/regex';
 import fs from 'node:fs';
 import { fileURLToPath, URL } from 'node:url';
-import { ChatInputCommandInteraction, GuildMemberRoleManager, InteractionUpdateOptions, InteractionReplyOptions } from 'discord.js';
+import { ChatInputCommandInteraction, GuildMemberRoleManager, InteractionUpdateOptions, InteractionReplyOptions, MessageFlags } from 'discord.js';
 const { discord }:GooseConfig = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../../../config/config.json', import.meta.url).toString()), 'utf-8'));
 const roles = discord.roles;
 
@@ -50,7 +50,7 @@ export async function execute(interaction:ChatInputCommandInteraction) {
     return;
   }
 
-  await interaction.deferReply({ ephemeral: true });
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
   if (!search) {
     await interaction.editReply({ content: 'Search can\'t be blank.' });

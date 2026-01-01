@@ -54,7 +54,7 @@ for (const file of selectFiles) {
 
 // TODO scan channels and build voiceUsers when ready
 // When the client is ready, run this code (only once)
-client.once('ready', async () => {
+client.once('clientReady', async () => {
 
   // deploy commands, if necessary
   const hashash = crypto.createHash('sha256').update(commandHash).digest('base64');
@@ -272,6 +272,17 @@ export function getVoiceUser(userID:string):undefined | VoiceUser & { adapterCre
 client.on('messageCreate', async message => {
   log.trace(`${chalk.blue(message.author.username)}: ${validator.escape(validator.stripLow(message.content || '')).trim()}`);
   if (!message.author.bot) { Translator.messageEventDispatch(message); }
+});
+
+// don't know whether these do anything. can't hurt maybe probably
+client.on('debug', async message => {
+  log.trace(message);
+});
+client.on('warn', async info => {
+  log.warn(info);
+});
+client.on('error', async info => {
+  log.error(info);
 });
 
 // Login to Discord

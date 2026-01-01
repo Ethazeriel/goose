@@ -5,13 +5,13 @@
 
 import * as db from '../../database.js';
 import * as utils from '@ethgoose/utils';
-import { ButtonInteraction, InteractionUpdateOptions, InteractionDeferUpdateOptions } from 'discord.js';
+import { ButtonInteraction, InteractionUpdateOptions, InteractionDeferUpdateOptions, MessageFlags } from 'discord.js';
 import youtube from '../../workers/acquire/youtube.js';
 
 export const name = 'remap';
 
 export async function execute(interaction:ButtonInteraction, which:string): Promise<void> { // button selection function
-  await interaction.deferUpdate({ ephemeral: true } as InteractionDeferUpdateOptions);
+  await interaction.deferUpdate({ flags: MessageFlags.Ephemeral } as InteractionDeferUpdateOptions);
   switch (which) {
 
     case 'db': {

@@ -43,13 +43,16 @@ font-size: 2vh;
   flex: 1;
 }
 `;
-const SpaceHolder = styled.div`
-width: 100%;
-height: calc(6vh + 3px);
-min-height: 20px;
-max-height: 82px;
-background-color: #626569;
-`;
+
+// relocated into each app column - necessary to allow independent scrolling w/ glass overlay effect
+// this probably needs a pass at some point
+// const SpaceHolder = styled.div`
+// width: 100%;
+// height: calc(6vh + 3px);
+// min-height: 20px;
+// max-height: 82px;
+// background-color: #626569;
+// `;
 
 const AuthLink = styled.a`
 text-decoration: none;
@@ -115,7 +118,7 @@ export function StatusBar(props: { status: Status, playerClick:(action:PlayerAct
   } else {
     return (
       <>
-        <SpaceHolder />
+        {/* <SpaceHolder /> */}
         <Bar>
           <div><Clock /></div>
           <div><MediaControls status={props.status.player} playerClick={props.playerClick} type='bar' buttonSize='30px' /></div>

@@ -384,6 +384,7 @@ const TrackContainer = styled.div`
   overflow-y: scroll;
   display: flex;
   flex-direction: column;
+  scrollbar-width: none;
 `;
 
 function ErrorDisplay(props: { error: null | string }) {

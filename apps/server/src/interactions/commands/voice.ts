@@ -8,7 +8,7 @@ import Player from '../../player.js';
 import { log } from '../../logger.js';
 import fs from 'node:fs';
 import { fileURLToPath, URL } from 'node:url';
-import { ChatInputCommandInteraction, GuildMemberRoleManager, Message, InteractionEditReplyOptions } from 'discord.js';
+import { ChatInputCommandInteraction, GuildMemberRoleManager, Message, InteractionEditReplyOptions, MessageFlags } from 'discord.js';
 const { discord }:GooseConfig = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../../../config/config.json', import.meta.url).toString()), 'utf-8'));
 const roles = discord.roles;
 
@@ -31,7 +31,7 @@ interface MusicInteraction extends ChatInputCommandInteraction {
 export async function execute(interaction:MusicInteraction):Promise<void> {
 
   if ((interaction.member?.roles as GuildMemberRoleManager)?.cache?.some(role => role.name === roles.dj)) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     const command = interaction.options.getSubcommand();
     if (command == 'leave') {
       await interaction.editReply(await Player.leave(interaction));
@@ -45,7 +45,7 @@ export async function execute(interaction:MusicInteraction):Promise<void> {
           }
           case 'nowplaying': {
             if (player.getQueue().length) {
-              const embed = await player.mediaEmbed();
+              const embed = await player.mediaEmbed(true);
               interaction.message = await interaction.editReply(embed as InteractionEditReplyOptions) as Message<boolean>;
               await player.register(interaction, 'media', embed);
             } else { await player.decommission(interaction, 'media', await player.mediaEmbed(false), 'Queue is empty.'); }

@@ -8,7 +8,7 @@ import { sanitize, youtubePattern, sanitizePlaylists } from '@ethgoose/utils/reg
 import * as database from '../../database.js';
 import validator from 'validator';
 import fs from 'node:fs';
-import type { ChatInputCommandInteraction, GuildMemberRoleManager } from 'discord.js';
+import { MessageFlags, type ChatInputCommandInteraction, type GuildMemberRoleManager } from 'discord.js';
 import { fileURLToPath, URL } from 'node:url';
 import Player from '../../player.js';
 const { discord }:GooseConfig = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../../../config/config.json', import.meta.url).toString()), 'utf-8'));
@@ -33,7 +33,7 @@ export const data = new SlashCommandBuilder()
 export async function execute(interaction:ChatInputCommandInteraction) {
 
   if ((interaction.member?.roles as GuildMemberRoleManager)?.cache?.some(role => role.name === roles.admin)) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     switch (interaction.options.getSubcommand()) {
 
       case 'removeplaylist': {

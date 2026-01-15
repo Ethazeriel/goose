@@ -8,10 +8,11 @@ SPDX-License-Identifier: CC-BY-NC-SA-4.0
 .App {
   width: 100%;
   min-height: 100vh;
+  max-height: 100vh;
   /* min-height: -webkit-fill-available; */ /* see below */
   display: flex;
   flex-direction: column;
-  
+  overflow: hidden;
   text-align: center;
   font-size: calc(10px + 2vmin);
   color: white;

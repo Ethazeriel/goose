@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { ChatInputCommandInteraction, GuildMemberRoleManager } from 'discord.js';
+import { ChatInputCommandInteraction, GuildMemberRoleManager, MessageFlags } from 'discord.js';
 import { sanitize, youtubePattern } from '@ethgoose/utils/regex';
 import * as db from '../../database.js';
 import * as utils from '@ethgoose/utils';
@@ -25,7 +25,7 @@ export const data = new SlashCommandBuilder()
 export async function execute(interaction:ChatInputCommandInteraction) {
 
   if ((interaction.member?.roles as GuildMemberRoleManager)?.cache?.some(role => role.name === roles.dj)) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     const search = interaction.options.getString('track')?.replace(sanitize, '')?.trim() || '';
     const replace = interaction.options.getString('newtrack')?.replace(sanitize, '')?.trim();
     if (youtubePattern.test(search) || search === 'current') {

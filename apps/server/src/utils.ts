@@ -61,21 +61,20 @@ export async function mbArtistLookup(artist:string):Promise<string | undefined> 
   // check for Artist.official in db before sending lookup
   const track = await db.getTrack({ $and:[{ 'goose.artist.official':{ $type:'string' } }, { 'goose.artist.name':artist }] });
   if (track) { return track.goose.artist.official; } else {
-    const axData1:null | Response = await fetch(`https://musicbrainz.org/ws/2/artist?query=${encodeURIComponent(artist)}&limit=1&offset=0&fmt=json`).catch(error => {
-      // log.error({ err:error }, `MB artist search fail - headers: ${JSON.stringify(error.response?.headers, null, 2)}`);
-      log.error(`MB artist lookup fail - code: ${error.code}`);
+    const axData1:null | Response = await fetch(`https://musicbrainz.org/ws/2/artist?query=${encodeURIComponent(artist)}&limit=1&offset=0&fmt=json`, { headers:{ 'User-Agent':'Goose-Bot/1.0.0' } }).catch(error => {
+      log.error(`MB artist lookup fail - code: ${error.code}`); // axios legacy? still useful?
       return (null);
     });
-    if (axData1) {
+    if (axData1 && axData1.ok) { // should consider logging the response code if not ok
       const firstdata = (await (axData1.json() as Promise<IArtistList>));
       if (firstdata?.artists?.length) {
         const mbid = firstdata.artists[0].id;
-        const axData2:null | Response = await fetch(`https://musicbrainz.org/ws/2/artist/${mbid}?inc=url-rels`).catch(error => {
+        const axData2:null | Response = await fetch(`https://musicbrainz.org/ws/2/artist/${mbid}?inc=url-rels&fmt=json`, { headers:{ 'User-Agent':'Goose-Bot/1.0.0' } }).catch(error => {
           // log.error({ err:error }, `MB artist lookup fail - headers: ${JSON.stringify(error.response?.headers, null, 2)}`);
           log.error(`MB artist lookup fail - code: ${error.code}`);
           return (null);
         });
-        if (axData2) {
+        if (axData2 && axData2.ok) {
           const data = (await (axData2.json() as Promise<IArtist>));
           if (data?.relations?.length) {
             let result = null;

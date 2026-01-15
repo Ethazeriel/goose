@@ -13,7 +13,7 @@ import acquire from '../../acquire.js';
 import Workspace from '../../workspace.js';
 import validator from 'validator';
 import fs from 'node:fs';
-import type { ChatInputCommandInteraction, GuildMemberRoleManager, InteractionReplyOptions } from 'discord.js';
+import { MessageFlags, type ChatInputCommandInteraction, type GuildMemberRoleManager, type InteractionReplyOptions } from 'discord.js';
 import { fileURLToPath, URL } from 'node:url';
 const { discord }:GooseConfig = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../../../config/config.json', import.meta.url).toString()), 'utf-8'));
 const roles = discord.roles;
@@ -72,7 +72,7 @@ export const data = new SlashCommandBuilder()
 export async function execute(interaction: ChatInputCommandInteraction) {
 
   if ((interaction.member?.roles as GuildMemberRoleManager)?.cache?.some(role => role.name === roles.dj)) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     const workspace = Workspace.getWorkspace(interaction.member!.user.id);
     switch (interaction.options.getSubcommand()) {
 

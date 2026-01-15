@@ -12,7 +12,7 @@ import { seekTime as seekRegex } from '@ethgoose/utils/regex';
 import validator from 'validator';
 import fs from 'node:fs';
 import { fileURLToPath, URL } from 'node:url';
-import { ChatInputCommandInteraction, GuildMemberRoleManager, InteractionEditReplyOptions, Message } from 'discord.js';
+import { ChatInputCommandInteraction, GuildMemberRoleManager, InteractionEditReplyOptions, Message, MessageFlags } from 'discord.js';
 const { discord }:GooseConfig = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../../../config/config.json', import.meta.url).toString()), 'utf-8'));
 const roles = discord.roles;
 
@@ -75,7 +75,7 @@ export const data = new SlashCommandBuilder()
 export async function execute(interaction:ChatInputCommandInteraction & { message?: Message<boolean> }) {
 
   if ((interaction.member?.roles as GuildMemberRoleManager)?.cache?.some(role => role.name === roles.dj)) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     const { player, message } = await Player.getPlayer(interaction);
     if (player) {

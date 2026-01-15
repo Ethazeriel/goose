@@ -4,11 +4,11 @@
 
 import Translator from '../../translate.js';
 import * as db from '../../database.js';
-import { ButtonInteraction, InteractionDeferUpdateOptions } from 'discord.js';
+import { ButtonInteraction, InteractionDeferUpdateOptions, MessageFlags } from 'discord.js';
 export const name = 'translate';
 
 export async function execute(interaction:ButtonInteraction, which:string) {
-  await interaction.deferUpdate({ ephemeral: true } as InteractionDeferUpdateOptions);
+  await interaction.deferUpdate({ flags: MessageFlags.Ephemeral } as InteractionDeferUpdateOptions);
   let reply = 'uhoh';
   const user = await db.getUser(interaction.user.id) as User;
   switch (which) {

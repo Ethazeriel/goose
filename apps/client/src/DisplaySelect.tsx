@@ -6,6 +6,8 @@
 import * as React from 'react';
 import { BasicTrack, SourceAsTrack } from './BasicTrack';
 import TrackEditor from './TrackEditor';
+import styled from 'styled-components';
+import { SpaceHolder } from './common';
 
 export default function DisplaySelect() {
   const [selValue, setSelValue] = React.useState('playlist');
@@ -21,12 +23,15 @@ export default function DisplaySelect() {
 
   return (
     <div>
-      <select name="whichcontent" value={selValue} onChange={onChange}>
-        <option value="playlist">Bot Playlist</option>
-        <option value="spotify">Spotify Content</option>
-        <option value="track">Track Editor</option>
-      </select>
+      <SpaceHolder />
       <ContentContainer content={selValue} />
+      <div>
+        <select name="whichcontent" value={selValue} onChange={onChange}>
+          <option value="playlist">Bot Playlist</option>
+          <option value="spotify">Spotify Content</option>
+          <option value="track">Track Editor</option>
+        </select>
+      </div>
     </div>
   );
 }
@@ -124,11 +129,18 @@ function BasicTrackList(props: {tracks:Track[]}) {
     }
   }
   return (
-    <div>
+    <TrackContainer>
       {queue}
-    </div>
+    </TrackContainer>
   );
 }
+
+const TrackContainer = styled.div`
+  height: 100%;
+  max-height: 86.4vh;
+  width: 100%;
+  overflow-y: scroll;
+`;
 
 function SourceTrackList(props: {tracks:TrackSource[]}) {
   const queue = [];
@@ -138,8 +150,8 @@ function SourceTrackList(props: {tracks:TrackSource[]}) {
     }
   }
   return (
-    <div>
+    <TrackContainer>
       {queue}
-    </div>
+    </TrackContainer>
   );
 }

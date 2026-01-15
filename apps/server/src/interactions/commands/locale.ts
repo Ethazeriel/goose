@@ -9,7 +9,7 @@ import { sanitize } from '@ethgoose/utils/regex';
 import validator from 'validator';
 import fs from 'node:fs';
 import { fileURLToPath, URL } from 'node:url';
-import type { ChatInputCommandInteraction, GuildMemberRoleManager } from 'discord.js';
+import { MessageFlags, type ChatInputCommandInteraction, type GuildMemberRoleManager } from 'discord.js';
 const { discord }:GooseConfig = JSON.parse(fs.readFileSync(fileURLToPath(new URL('../../../config/config.json', import.meta.url).toString()), 'utf-8'));
 const roles = discord.roles;
 
@@ -23,7 +23,7 @@ export const data = new SlashCommandBuilder()
 
 export async function execute(interaction:ChatInputCommandInteraction) {
   if ((interaction.member?.roles as GuildMemberRoleManager)?.cache?.some(role => role.name === roles.translate)) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     const choice = validator.escape(validator.stripLow(interaction.options.getString('code')?.replace(sanitize, '') || '')).trim();
     const locales = await Translator.getLocales();
     if (locales.filter(element => element.code === choice).length) {

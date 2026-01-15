@@ -66,7 +66,7 @@ async function fetchTracks(search:string):Promise<Array<Track | string> | string
   } else if (/(https?:\/\/)/.test(search)) {
     // lazy url check - this looks like a url, but didn't match any of our tests
     // error out here
-    return 'It looks like you\'ve searched a URL, but none of the filters matched; no tracks found';
+    return ['It looks like you\'ve searched a URL, but none of the filters matched; no tracks found'];
   } else if (search === 'givefailpls') {
     // sometimes I just need a failed track, ok?
     return ['here is the failed track you asked for'];

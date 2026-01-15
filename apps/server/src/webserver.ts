@@ -20,7 +20,7 @@ worker.on('exit', code => {
 
 worker.on('error', code => {
   log.error({ err:code }, `Worker threw error ${code.message}.`);
-  worker = new Worker(fileURLToPath(new URL('./workers/webserver.js', import.meta.url).toString()), { workerData:{ name:'WebServer' } });
+  // worker = new Worker(fileURLToPath(new URL('./workers/webserver.js', import.meta.url).toString()), { workerData:{ name:'WebServer' } }); error doesn't mean exit necessarily - TODO consider checking for port in use in webserver and exiting if so - then could restore this if desired
 }); // ehh fuck it, probably better than just crashing I guess
 
 worker.on('message', async (message:WebWorkerMessage<ActionType>) => {
